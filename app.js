@@ -19,7 +19,8 @@ const state = {
         markers: L.layerGroup(),
         labels: L.layerGroup(),
         additionalBoundaries: L.layerGroup(),
-        annotations: L.layerGroup()
+        annotations: L.layerGroup(),
+        dataLayers: {}  // Will hold layer groups by layer type
     },
     currentBoundaryLayer: null,
     isExporting: false,
@@ -29,7 +30,9 @@ const state = {
     activeAnnotationTool: null,
     editingAnnotationId: null,
     pageSize: 'auto',
-    fixedDimensions: null
+    fixedDimensions: null,
+    activeLayers: new Set(),  // Track which data layers are enabled
+    layerData: {}  // Cache for fetched layer data
 };
 
 // ============================================
@@ -108,6 +111,192 @@ const pageSizes = {
 };
 
 // ============================================
+// Data Layer Definitions (Overpass API queries)
+// ============================================
+
+const dataLayerDefs = {
+    // Civic & Government
+    schools: {
+        icon: '🏫',
+        query: 'node["amenity"="school"];way["amenity"="school"];node["amenity"="kindergarten"];way["amenity"="kindergarten"];node["amenity"="college"];way["amenity"="college"];node["amenity"="university"];way["amenity"="university"];',
+        color: '#3b82f6'
+    },
+    hospitals: {
+        icon: '🏥',
+        query: 'node["amenity"="hospital"];way["amenity"="hospital"];node["amenity"="clinic"];way["amenity"="clinic"];',
+        color: '#ef4444'
+    },
+    police: {
+        icon: '🚔',
+        query: 'node["amenity"="police"];way["amenity"="police"];',
+        color: '#1e3a8a'
+    },
+    fire_stations: {
+        icon: '🚒',
+        query: 'node["amenity"="fire_station"];way["amenity"="fire_station"];',
+        color: '#dc2626'
+    },
+    libraries: {
+        icon: '📚',
+        query: 'node["amenity"="library"];way["amenity"="library"];',
+        color: '#8b5cf6'
+    },
+    post_offices: {
+        icon: '📮',
+        query: 'node["amenity"="post_office"];way["amenity"="post_office"];',
+        color: '#0ea5e9'
+    },
+    government: {
+        icon: '🏛️',
+        query: 'node["amenity"="townhall"];way["amenity"="townhall"];node["office"="government"];way["office"="government"];node["amenity"="courthouse"];way["amenity"="courthouse"];',
+        color: '#64748b'
+    },
+    places_of_worship: {
+        icon: '⛪',
+        query: 'node["amenity"="place_of_worship"];way["amenity"="place_of_worship"];',
+        color: '#a855f7'
+    },
+    
+    // Transportation
+    bus_stops: {
+        icon: '🚏',
+        query: 'node["highway"="bus_stop"];node["public_transport"="stop_position"]["bus"="yes"];',
+        color: '#22c55e'
+    },
+    train_stations: {
+        icon: '🚉',
+        query: 'node["railway"="station"];node["railway"="halt"];way["railway"="station"];',
+        color: '#f59e0b'
+    },
+    subway: {
+        icon: '🚇',
+        query: 'node["railway"="subway_entrance"];node["station"="subway"];',
+        color: '#6366f1'
+    },
+    parking: {
+        icon: '🅿️',
+        query: 'node["amenity"="parking"];way["amenity"="parking"];',
+        color: '#0284c7'
+    },
+    bike_parking: {
+        icon: '🚲',
+        query: 'node["amenity"="bicycle_parking"];',
+        color: '#84cc16'
+    },
+    ev_charging: {
+        icon: '⚡',
+        query: 'node["amenity"="charging_station"];',
+        color: '#eab308'
+    },
+    
+    // Parks & Recreation
+    parks: {
+        icon: '🌳',
+        query: 'way["leisure"="park"];relation["leisure"="park"];node["leisure"="park"];',
+        color: '#22c55e'
+    },
+    playgrounds: {
+        icon: '🛝',
+        query: 'node["leisure"="playground"];way["leisure"="playground"];',
+        color: '#f97316'
+    },
+    sports: {
+        icon: '⚽',
+        query: 'node["leisure"="pitch"];way["leisure"="pitch"];node["leisure"="sports_centre"];way["leisure"="sports_centre"];',
+        color: '#10b981'
+    },
+    swimming: {
+        icon: '🏊',
+        query: 'node["leisure"="swimming_pool"];way["leisure"="swimming_pool"];node["sport"="swimming"];',
+        color: '#06b6d4'
+    },
+    nature: {
+        icon: '🏞️',
+        query: 'way["leisure"="nature_reserve"];relation["leisure"="nature_reserve"];way["landuse"="forest"];',
+        color: '#15803d'
+    },
+    beaches: {
+        icon: '🏖️',
+        query: 'node["natural"="beach"];way["natural"="beach"];',
+        color: '#fbbf24'
+    },
+    
+    // Commerce & Services
+    supermarkets: {
+        icon: '🛒',
+        query: 'node["shop"="supermarket"];way["shop"="supermarket"];',
+        color: '#f97316'
+    },
+    pharmacies: {
+        icon: '💊',
+        query: 'node["amenity"="pharmacy"];way["amenity"="pharmacy"];',
+        color: '#22c55e'
+    },
+    banks: {
+        icon: '🏦',
+        query: 'node["amenity"="bank"];way["amenity"="bank"];',
+        color: '#0f766e'
+    },
+    atms: {
+        icon: '💳',
+        query: 'node["amenity"="atm"];',
+        color: '#059669'
+    },
+    gas_stations: {
+        icon: '⛽',
+        query: 'node["amenity"="fuel"];way["amenity"="fuel"];',
+        color: '#dc2626'
+    },
+    restaurants: {
+        icon: '🍽️',
+        query: 'node["amenity"="restaurant"];way["amenity"="restaurant"];',
+        color: '#ea580c'
+    },
+    cafes: {
+        icon: '☕',
+        query: 'node["amenity"="cafe"];',
+        color: '#92400e'
+    },
+    hotels: {
+        icon: '🏨',
+        query: 'node["tourism"="hotel"];way["tourism"="hotel"];node["tourism"="motel"];',
+        color: '#7c3aed'
+    },
+    
+    // Culture & Tourism
+    museums: {
+        icon: '🏛️',
+        query: 'node["tourism"="museum"];way["tourism"="museum"];',
+        color: '#be185d'
+    },
+    theaters: {
+        icon: '🎭',
+        query: 'node["amenity"="theatre"];way["amenity"="theatre"];',
+        color: '#9333ea'
+    },
+    cinemas: {
+        icon: '🎬',
+        query: 'node["amenity"="cinema"];way["amenity"="cinema"];',
+        color: '#4f46e5'
+    },
+    monuments: {
+        icon: '🗽',
+        query: 'node["historic"="monument"];node["historic"="memorial"];way["historic"="monument"];',
+        color: '#78716c'
+    },
+    viewpoints: {
+        icon: '👀',
+        query: 'node["tourism"="viewpoint"];',
+        color: '#0891b2'
+    },
+    tourist_info: {
+        icon: 'ℹ️',
+        query: 'node["tourism"="information"];',
+        color: '#2563eb'
+    }
+};
+
+// ============================================
 // Initialization
 // ============================================
 
@@ -118,6 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupColorInputSync();
     setupSliderDisplays();
     updateDimensionPreview();
+    setupDataLayerListeners();
 });
 
 function initializeMap() {
@@ -926,6 +1116,7 @@ function showCity(cityId) {
     if (!city) return;
     
     state.activeCityId = cityId;
+    state.currentCity = city;
     
     // Clear previous layers
     clearMapLayers();
@@ -942,6 +1133,9 @@ function showCity(cityId) {
     const style = getBoundaryStyle();
     state.currentBoundaryLayer = L.geoJSON(city.geojson, { style });
     state.layers.boundaries.addLayer(state.currentBoundaryLayer);
+    
+    // Store boundary reference for data layers
+    state.layers.boundary = state.currentBoundaryLayer;
     
     // Add center marker if enabled
     if (document.getElementById('showCenterMarker').checked) {
@@ -966,6 +1160,11 @@ function showCity(cityId) {
     
     // Zoom to fit
     zoomToFit();
+    
+    // Refresh data layers for new city
+    if (state.activeLayers && state.activeLayers.size > 0) {
+        refreshDataLayersForNewCity();
+    }
 }
 
 function refreshCurrentCity() {
@@ -2105,4 +2304,418 @@ function showToast(message, type = 'success') {
     setTimeout(() => {
         toast.remove();
     }, 3000);
+}
+
+// ============================================
+// Data Layers (Overpass API)
+// ============================================
+
+function setupDataLayerListeners() {
+    // Set up listeners for all layer checkboxes
+    document.querySelectorAll('.layer-toggle input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', (e) => {
+            const layerType = e.target.dataset.layer;
+            if (e.target.checked) {
+                enableDataLayer(layerType);
+            } else {
+                disableDataLayer(layerType);
+            }
+        });
+    });
+    
+    // Marker size slider
+    const markerSizeSlider = document.getElementById('layerMarkerSize');
+    if (markerSizeSlider) {
+        markerSizeSlider.addEventListener('input', (e) => {
+            document.getElementById('layerMarkerSizeValue').textContent = `${e.target.value}px`;
+            updateAllLayerMarkerSizes(parseInt(e.target.value));
+        });
+    }
+    
+    // Show labels checkbox
+    const showLabels = document.getElementById('showLayerLabels');
+    if (showLabels) {
+        showLabels.addEventListener('change', (e) => {
+            toggleLayerLabels(e.target.checked);
+        });
+    }
+    
+    // Cluster markers checkbox
+    const clusterMarkers = document.getElementById('clusterMarkers');
+    if (clusterMarkers) {
+        clusterMarkers.addEventListener('change', (e) => {
+            refreshAllLayers();
+        });
+    }
+    
+    // Clear all layers button
+    const clearBtn = document.getElementById('clearAllLayers');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', clearAllDataLayers);
+    }
+    
+    // Refresh layers button
+    const refreshBtn = document.getElementById('refreshLayers');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+            if (state.activeLayers.size === 0) {
+                showToast('No active layers to refresh', 'error');
+                return;
+            }
+            refreshDataLayersForNewCity();
+            showToast('Refreshing layers...', 'success');
+        });
+    }
+}
+
+async function enableDataLayer(layerType) {
+    if (!state.currentCity) {
+        showToast('Please select a city first', 'error');
+        // Uncheck the checkbox
+        const checkbox = document.querySelector(`input[data-layer="${layerType}"]`);
+        if (checkbox) checkbox.checked = false;
+        return;
+    }
+    
+    const layerDef = dataLayerDefs[layerType];
+    if (!layerDef) {
+        console.error(`Unknown layer type: ${layerType}`);
+        return;
+    }
+    
+    state.activeLayers.add(layerType);
+    
+    // Show loading indicator
+    showLayerLoading(layerType, true);
+    
+    try {
+        // Get bbox from current city boundary or map bounds
+        const bbox = getQueryBbox();
+        
+        // Check cache first
+        const cacheKey = `${layerType}_${bbox.join('_')}`;
+        let data = state.layerData[cacheKey];
+        
+        if (!data) {
+            data = await fetchOverpassData(layerType, bbox);
+            state.layerData[cacheKey] = data;
+        }
+        
+        // Render the layer
+        renderDataLayer(layerType, data);
+        
+        const count = data.elements?.length || 0;
+        showToast(`Loaded ${count} ${layerType.replace(/_/g, ' ')}`, 'success');
+        
+    } catch (error) {
+        console.error(`Error loading ${layerType}:`, error);
+        showToast(`Failed to load ${layerType}`, 'error');
+        state.activeLayers.delete(layerType);
+        
+        // Uncheck the checkbox
+        const checkbox = document.querySelector(`input[data-layer="${layerType}"]`);
+        if (checkbox) checkbox.checked = false;
+    } finally {
+        showLayerLoading(layerType, false);
+    }
+}
+
+function disableDataLayer(layerType) {
+    state.activeLayers.delete(layerType);
+    
+    // Remove layer from map
+    if (state.layers.dataLayers[layerType]) {
+        state.map.removeLayer(state.layers.dataLayers[layerType]);
+        delete state.layers.dataLayers[layerType];
+    }
+}
+
+function getQueryBbox() {
+    // If we have a city boundary, use its bounds
+    if (state.layers.boundary) {
+        const bounds = state.layers.boundary.getBounds();
+        return [
+            bounds.getSouth(),
+            bounds.getWest(),
+            bounds.getNorth(),
+            bounds.getEast()
+        ];
+    }
+    
+    // Otherwise use map viewport
+    const bounds = state.map.getBounds();
+    return [
+        bounds.getSouth(),
+        bounds.getWest(),
+        bounds.getNorth(),
+        bounds.getEast()
+    ];
+}
+
+async function fetchOverpassData(layerType, bbox) {
+    const layerDef = dataLayerDefs[layerType];
+    if (!layerDef) {
+        throw new Error(`Unknown layer type: ${layerType}`);
+    }
+    
+    const [south, west, north, east] = bbox;
+    const bboxStr = `${south},${west},${north},${east}`;
+    
+    // Build Overpass query
+    const query = `
+        [out:json][timeout:30];
+        (
+            ${layerDef.query.split(';').filter(q => q.trim()).map(q => q.trim() + `(${bboxStr});`).join('\n            ')}
+        );
+        out center;
+    `;
+    
+    const response = await fetch('https://overpass-api.de/api/interpreter', {
+        method: 'POST',
+        body: `data=${encodeURIComponent(query)}`,
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+    });
+    
+    if (!response.ok) {
+        throw new Error(`Overpass API error: ${response.status}`);
+    }
+    
+    return await response.json();
+}
+
+function renderDataLayer(layerType, data) {
+    const layerDef = dataLayerDefs[layerType];
+    if (!layerDef) return;
+    
+    // Remove existing layer
+    if (state.layers.dataLayers[layerType]) {
+        state.map.removeLayer(state.layers.dataLayers[layerType]);
+    }
+    
+    const markers = [];
+    const markerSize = parseInt(document.getElementById('layerMarkerSize')?.value || 24);
+    const showLabels = document.getElementById('showLayerLabels')?.checked || false;
+    const useClustering = document.getElementById('clusterMarkers')?.checked || false;
+    
+    if (!data.elements) return;
+    
+    data.elements.forEach(element => {
+        let lat, lon, name;
+        
+        // Get coordinates
+        if (element.type === 'node') {
+            lat = element.lat;
+            lon = element.lon;
+        } else if (element.center) {
+            lat = element.center.lat;
+            lon = element.center.lon;
+        } else {
+            return; // Skip if no coordinates
+        }
+        
+        // Get name
+        name = element.tags?.name || element.tags?.operator || '';
+        
+        // Create custom icon
+        const icon = L.divIcon({
+            className: 'poi-marker',
+            html: `<div class="poi-icon" style="background-color: ${layerDef.color}; width: ${markerSize}px; height: ${markerSize}px; font-size: ${markerSize * 0.6}px;">${layerDef.icon}</div>${showLabels && name ? `<div class="poi-label">${name}</div>` : ''}`,
+            iconSize: [markerSize, markerSize],
+            iconAnchor: [markerSize / 2, markerSize / 2]
+        });
+        
+        const marker = L.marker([lat, lon], { icon });
+        
+        // Add popup with details
+        const popupContent = createPoiPopup(element, layerType, layerDef);
+        marker.bindPopup(popupContent);
+        
+        markers.push(marker);
+    });
+    
+    // Create layer group or cluster group
+    let layerGroup;
+    
+    if (useClustering && markers.length > 50) {
+        // Simple clustering using Leaflet.markercluster if available, otherwise use layer group
+        if (typeof L.markerClusterGroup === 'function') {
+            layerGroup = L.markerClusterGroup({
+                maxClusterRadius: 50,
+                iconCreateFunction: (cluster) => {
+                    const count = cluster.getChildCount();
+                    let size = 'small';
+                    if (count > 50) size = 'large';
+                    else if (count > 20) size = 'medium';
+                    
+                    return L.divIcon({
+                        html: `<div class="marker-cluster marker-cluster-${size}" style="background-color: ${layerDef.color}"><span>${count}</span></div>`,
+                        className: '',
+                        iconSize: [40, 40]
+                    });
+                }
+            });
+            markers.forEach(m => layerGroup.addLayer(m));
+        } else {
+            // Fallback to simple layer group
+            layerGroup = L.layerGroup(markers);
+        }
+    } else {
+        layerGroup = L.layerGroup(markers);
+    }
+    
+    layerGroup.addTo(state.map);
+    state.layers.dataLayers[layerType] = layerGroup;
+}
+
+function createPoiPopup(element, layerType, layerDef) {
+    const tags = element.tags || {};
+    let html = `<div class="poi-popup">`;
+    html += `<h4>${layerDef.icon} ${tags.name || layerType.replace(/_/g, ' ')}</h4>`;
+    
+    // Add relevant details based on available tags
+    const details = [];
+    
+    if (tags.address || tags['addr:street']) {
+        const addr = tags.address || `${tags['addr:housenumber'] || ''} ${tags['addr:street'] || ''}`.trim();
+        if (addr) details.push(`📍 ${addr}`);
+    }
+    
+    if (tags.phone || tags['contact:phone']) {
+        details.push(`📞 ${tags.phone || tags['contact:phone']}`);
+    }
+    
+    if (tags.website || tags['contact:website']) {
+        const url = tags.website || tags['contact:website'];
+        details.push(`🔗 <a href="${url}" target="_blank">Website</a>`);
+    }
+    
+    if (tags.opening_hours) {
+        details.push(`🕐 ${tags.opening_hours}`);
+    }
+    
+    if (tags.operator) {
+        details.push(`🏢 ${tags.operator}`);
+    }
+    
+    if (tags.cuisine) {
+        details.push(`🍴 ${tags.cuisine}`);
+    }
+    
+    if (tags.capacity) {
+        details.push(`👥 Capacity: ${tags.capacity}`);
+    }
+    
+    if (details.length > 0) {
+        html += `<div class="poi-details">${details.join('<br>')}</div>`;
+    }
+    
+    // OSM link
+    html += `<div class="poi-osm-link"><a href="https://www.openstreetmap.org/${element.type}/${element.id}" target="_blank">View on OSM</a></div>`;
+    
+    html += `</div>`;
+    return html;
+}
+
+function showLayerLoading(layerType, show) {
+    const checkbox = document.querySelector(`input[data-layer="${layerType}"]`);
+    if (!checkbox) return;
+    
+    const toggle = checkbox.closest('.layer-toggle');
+    if (!toggle) return;
+    
+    let indicator = toggle.querySelector('.loading-indicator');
+    
+    if (show) {
+        if (!indicator) {
+            indicator = document.createElement('span');
+            indicator.className = 'loading-indicator';
+            indicator.innerHTML = '<span class="spinner"></span>';
+            toggle.appendChild(indicator);
+        }
+    } else {
+        if (indicator) {
+            indicator.remove();
+        }
+    }
+}
+
+function updateAllLayerMarkerSizes(size) {
+    // Re-render all active layers with new marker size
+    state.activeLayers.forEach(layerType => {
+        const bbox = getQueryBbox();
+        const cacheKey = `${layerType}_${bbox.join('_')}`;
+        const data = state.layerData[cacheKey];
+        
+        if (data) {
+            renderDataLayer(layerType, data);
+        }
+    });
+}
+
+function toggleLayerLabels(show) {
+    // Re-render all active layers
+    state.activeLayers.forEach(layerType => {
+        const bbox = getQueryBbox();
+        const cacheKey = `${layerType}_${bbox.join('_')}`;
+        const data = state.layerData[cacheKey];
+        
+        if (data) {
+            renderDataLayer(layerType, data);
+        }
+    });
+}
+
+function refreshAllLayers() {
+    state.activeLayers.forEach(layerType => {
+        const bbox = getQueryBbox();
+        const cacheKey = `${layerType}_${bbox.join('_')}`;
+        const data = state.layerData[cacheKey];
+        
+        if (data) {
+            renderDataLayer(layerType, data);
+        }
+    });
+}
+
+function clearAllDataLayers() {
+    // Remove all data layers from map
+    Object.keys(state.layers.dataLayers).forEach(layerType => {
+        state.map.removeLayer(state.layers.dataLayers[layerType]);
+        delete state.layers.dataLayers[layerType];
+    });
+    
+    // Clear active layers set
+    state.activeLayers.clear();
+    
+    // Uncheck all layer checkboxes
+    document.querySelectorAll('.layer-toggle input[type="checkbox"]').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    
+    // Clear cache
+    state.layerData = {};
+    
+    showToast('All layers cleared', 'success');
+}
+
+// Refresh data layers when city changes
+function refreshDataLayersForNewCity() {
+    // Clear cache for old city
+    state.layerData = {};
+    
+    // Re-fetch and render all active layers
+    const activeLayers = Array.from(state.activeLayers);
+    
+    // Clear existing layers
+    Object.keys(state.layers.dataLayers).forEach(layerType => {
+        state.map.removeLayer(state.layers.dataLayers[layerType]);
+        delete state.layers.dataLayers[layerType];
+    });
+    
+    // Re-enable active layers (will fetch fresh data)
+    activeLayers.forEach(layerType => {
+        enableDataLayer(layerType);
+    });
 }
