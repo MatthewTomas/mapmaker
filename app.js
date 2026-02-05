@@ -314,7 +314,8 @@ function initializeMap() {
     state.map = L.map('map', {
         center: [39.8283, -98.5795], // Center of US
         zoom: 4,
-        zoomControl: true
+        zoomControl: true,
+        preferCanvas: true  // Use Canvas renderer instead of SVG for better export compatibility
     });
 
     // Add default tile layer
@@ -881,6 +882,7 @@ async function searchCities(query) {
             li.addEventListener('click', () => {
                 addCity({
                     id: result.place_id,
+                    osmId: result.osm_id,
                     name: result.name || displayName.split(',')[0],
                     displayName: result.display_name,
                     lat: parseFloat(result.lat),
@@ -2242,40 +2244,57 @@ function generateExportReportCsv(reportData, startTime, activeLayers) {
 // Wait for map tiles to finish loading
 function waitForTilesToLoad() {
     return new Promise((resolve) => {
-        // Check if tiles are already loaded
-        let pendingTiles = 0;
+        // Track loading tiles
+        let tilesLoading = 0;
+        let resolved = false;
         
-        state.map.eachLayer((layer) => {
-            if (layer._loading) {
-                pendingTiles++;
+        const checkAndResolve = () => {
+            if (resolved) return;
+            if (tilesLoading <= 0) {
+                resolved = true;
+                // Additional delay after tiles loaded for rendering
+                setTimeout(resolve, 500);
             }
-        });
-        
-        if (pendingTiles === 0) {
-            // Give a bit more time for rendering
-            setTimeout(resolve, 500);
-            return;
-        }
-        
-        // Wait for 'load' event with timeout
-        const timeout = setTimeout(() => {
-            resolve();
-        }, 5000); // Max 5 second wait
-        
-        const onLoad = () => {
-            clearTimeout(timeout);
-            // Small additional delay after load event
-            setTimeout(resolve, 300);
         };
         
-        state.map.once('load', onLoad);
+        // Set up tile loading tracking on the tile layer
+        if (state.tileLayer) {
+            state.tileLayer.on('loading', () => {
+                tilesLoading++;
+            });
+            
+            state.tileLayer.on('load', () => {
+                tilesLoading = 0;
+                checkAndResolve();
+            });
+            
+            state.tileLayer.on('tileload', () => {
+                // Individual tile loaded
+            });
+            
+            state.tileLayer.on('tileerror', () => {
+                tilesLoading--;
+                checkAndResolve();
+            });
+        }
         
-        // Also listen for tile layer load events
-        state.map.eachLayer((layer) => {
-            if (layer.once && layer._url) {
-                layer.once('load', onLoad);
+        // Timeout fallback - max 8 seconds wait
+        const timeout = setTimeout(() => {
+            if (!resolved) {
+                resolved = true;
+                console.warn('Tile loading timeout - proceeding anyway');
+                resolve();
             }
-        });
+        }, 8000);
+        
+        // Check initial state after short delay
+        setTimeout(() => {
+            if (!resolved && tilesLoading <= 0) {
+                resolved = true;
+                clearTimeout(timeout);
+                resolve();
+            }
+        }, 1000);
     });
 }
 
@@ -2345,91 +2364,19 @@ async function captureMap() {
         cityIndicator.style.display = 'none';
     }
     
-    // Convert SVG elements to inline styles for better html2canvas compatibility
-    // This fixes the boundary/polygon not rendering issue
-    const svgElements = mapWrapper.querySelectorAll('svg');
-    const originalStyles = [];
+    // Force a map redraw to ensure Canvas layers are rendered
+    state.map.invalidateSize();
     
-    svgElements.forEach((svg, index) => {
-        originalStyles[index] = svg.style.cssText;
-        // Force SVG visibility and ensure paths are visible
-        svg.style.overflow = 'visible';
-        
-        // Process all paths and apply computed styles inline
-        svg.querySelectorAll('path').forEach(path => {
-            const computedStyle = window.getComputedStyle(path);
-            path.setAttribute('data-original-stroke', path.getAttribute('stroke') || '');
-            path.setAttribute('data-original-fill', path.getAttribute('fill') || '');
-            
-            // Apply inline styles from computed styles if not already set
-            if (!path.getAttribute('stroke') || path.getAttribute('stroke') === 'none') {
-                const stroke = computedStyle.stroke;
-                if (stroke && stroke !== 'none') {
-                    path.setAttribute('stroke', stroke);
-                }
-            }
-            if (!path.getAttribute('fill') && computedStyle.fill !== 'none') {
-                path.setAttribute('fill', computedStyle.fill);
-            }
-            if (!path.getAttribute('stroke-width')) {
-                path.setAttribute('stroke-width', computedStyle.strokeWidth || '3');
-            }
-            if (!path.getAttribute('stroke-opacity')) {
-                path.setAttribute('stroke-opacity', computedStyle.strokeOpacity || '1');
-            }
-            if (!path.getAttribute('fill-opacity')) {
-                path.setAttribute('fill-opacity', computedStyle.fillOpacity || '0.2');
-            }
-        });
-    });
-    
-    // Wait for rendering
+    // Wait for rendering to complete
     await delay(parseInt(document.getElementById('tileLoadWait').value));
     
-    // Capture with foreignObjectRendering for better SVG support
+    // Capture the map - with preferCanvas:true, boundaries render as Canvas which html2canvas handles well
     const canvas = await html2canvas(mapWrapper, {
         scale: scale,
         backgroundColor: bgColor,
         useCORS: true,
         allowTaint: true,
-        logging: false,
-        foreignObjectRendering: false,
-        onclone: (clonedDoc) => {
-            // Ensure SVG paths in cloned document have proper styles
-            const clonedSvgs = clonedDoc.querySelectorAll('svg');
-            clonedSvgs.forEach(svg => {
-                svg.style.overflow = 'visible';
-                svg.querySelectorAll('path').forEach(path => {
-                    // Ensure stroke and fill are inline
-                    const stroke = path.getAttribute('stroke');
-                    const fill = path.getAttribute('fill');
-                    const strokeWidth = path.getAttribute('stroke-width');
-                    
-                    if (stroke) path.style.stroke = stroke;
-                    if (fill) path.style.fill = fill;
-                    if (strokeWidth) path.style.strokeWidth = strokeWidth;
-                });
-            });
-        }
-    });
-    
-    // Restore original SVG styles
-    svgElements.forEach((svg, index) => {
-        svg.style.cssText = originalStyles[index] || '';
-        svg.querySelectorAll('path').forEach(path => {
-            const origStroke = path.getAttribute('data-original-stroke');
-            const origFill = path.getAttribute('data-original-fill');
-            if (origStroke !== null) {
-                if (origStroke) path.setAttribute('stroke', origStroke);
-                else path.removeAttribute('stroke');
-            }
-            if (origFill !== null) {
-                if (origFill) path.setAttribute('fill', origFill);
-                else path.removeAttribute('fill');
-            }
-            path.removeAttribute('data-original-stroke');
-            path.removeAttribute('data-original-fill');
-        });
+        logging: false
     });
     
     // Restore elements
