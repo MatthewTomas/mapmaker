@@ -57,6 +57,17 @@
                         <button id="loadCityListBtn" class="btn btn-secondary btn-sm">📂 Load List</button>
                         <input type="file" id="cityListFileInput" accept=".json" style="display: none;">
                     </div>
+                    
+                    <hr class="divider">
+                    
+                    <div class="csv-import-section">
+                        <p class="help-text">Import cities from CSV file:</p>
+                        <div class="panel-actions">
+                            <button id="downloadCsvTemplateBtn" class="btn btn-secondary btn-sm">📥 Download Template</button>
+                            <button id="importCsvBtn" class="btn btn-primary btn-sm">📤 Import CSV</button>
+                            <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
+                        </div>
+                    </div>
                 </div>
             </section>
             
@@ -677,6 +688,11 @@
                     <label class="form-label checkbox-label">
                         <input type="checkbox" id="includeDataLayers" checked>
                         Include active data layers in export
+                    </label>
+                    
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="includeExportReport" checked>
+                        Generate export report (CSV)
                     </label>
                     
                     <div class="panel-actions export-actions">

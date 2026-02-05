@@ -434,6 +434,17 @@ function setupEventListeners() {
         }
     });
     
+    // CSV Import/Export
+    document.getElementById('downloadCsvTemplateBtn').addEventListener('click', downloadCsvTemplate);
+    document.getElementById('importCsvBtn').addEventListener('click', () => {
+        document.getElementById('csvFileInput').click();
+    });
+    document.getElementById('csvFileInput').addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            importCitiesFromCsv(e.target.files[0]);
+        }
+    });
+    
     // Expand/Collapse all
     document.getElementById('expandAllBtn').addEventListener('click', expandAllPanels);
     document.getElementById('collapseAllBtn').addEventListener('click', collapseAllPanels);
@@ -1323,6 +1334,186 @@ function loadCityListFromFile(file) {
 }
 
 // ============================================
+// CSV Import/Export Functions
+// ============================================
+
+function downloadCsvTemplate() {
+    const templateCsv = `city_name,state_or_region,country,notes
+"New York City",New York,USA,Example city
+"Los Angeles",California,USA,
+"Chicago",Illinois,USA,
+"Houston",Texas,USA,
+"Phoenix",Arizona,USA,
+"Philadelphia",Pennsylvania,USA,
+"San Antonio",Texas,USA,
+"San Diego",California,USA,
+"Dallas",Texas,USA,
+"San Jose",California,USA,`;
+
+    const blob = new Blob([templateCsv], { type: 'text/csv' });
+    saveAs(blob, 'city_list_template.csv');
+    showToast('Template downloaded', 'success');
+}
+
+async function importCitiesFromCsv(file) {
+    const reader = new FileReader();
+    
+    reader.onload = async (e) => {
+        try {
+            const csvText = e.target.result;
+            const lines = csvText.split('\n').filter(line => line.trim());
+            
+            if (lines.length < 2) {
+                showToast('CSV file is empty or has no data rows', 'error');
+                return;
+            }
+            
+            // Parse header
+            const header = parseCSVLine(lines[0]);
+            const cityNameIdx = header.findIndex(h => h.toLowerCase().includes('city'));
+            const stateIdx = header.findIndex(h => h.toLowerCase().includes('state') || h.toLowerCase().includes('region'));
+            const countryIdx = header.findIndex(h => h.toLowerCase().includes('country'));
+            
+            if (cityNameIdx === -1) {
+                showToast('CSV must have a city_name column', 'error');
+                return;
+            }
+            
+            const progressPanel = document.getElementById('progressPanel');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            
+            progressPanel.style.display = 'block';
+            progressFill.style.width = '0%';
+            
+            const dataRows = lines.slice(1);
+            let successCount = 0;
+            let failCount = 0;
+            
+            for (let i = 0; i < dataRows.length; i++) {
+                const row = parseCSVLine(dataRows[i]);
+                if (!row[cityNameIdx]) continue;
+                
+                const cityName = row[cityNameIdx].trim();
+                const stateName = stateIdx !== -1 ? row[stateIdx]?.trim() : '';
+                const countryName = countryIdx !== -1 ? row[countryIdx]?.trim() : '';
+                
+                const progress = ((i + 1) / dataRows.length) * 100;
+                progressFill.style.width = `${progress}%`;
+                progressText.textContent = `Searching for ${cityName}${stateName ? ', ' + stateName : ''}... (${i + 1}/${dataRows.length})`;
+                
+                // Build search query
+                let searchQuery = cityName;
+                if (stateName) searchQuery += `, ${stateName}`;
+                if (countryName) searchQuery += `, ${countryName}`;
+                
+                try {
+                    // Search for the city
+                    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&polygon_geojson=1&limit=5`;
+                    const response = await fetch(url, {
+                        headers: { 'User-Agent': 'MapMaker/1.2' }
+                    });
+                    const results = await response.json();
+                    
+                    // Find first result with polygon boundary
+                    const cityResult = results.find(r => 
+                        r.geojson && 
+                        (r.geojson.type === 'Polygon' || r.geojson.type === 'MultiPolygon')
+                    );
+                    
+                    if (cityResult) {
+                        // Check if already added
+                        const exists = state.cities.some(c => c.osmId === cityResult.osm_id);
+                        if (!exists) {
+                            const newCity = {
+                                id: Date.now() + Math.random(),
+                                osmId: cityResult.osm_id,
+                                name: cityName,
+                                displayName: cityResult.display_name,
+                                lat: parseFloat(cityResult.lat),
+                                lon: parseFloat(cityResult.lon),
+                                type: cityResult.type,
+                                locationSuffix: stateName || extractLocationSuffix(cityResult.display_name, cityName),
+                                geojson: cityResult.geojson,
+                                boundingbox: cityResult.boundingbox
+                            };
+                            state.cities.push(newCity);
+                            successCount++;
+                        }
+                    } else {
+                        console.warn(`No boundary found for: ${searchQuery}`);
+                        failCount++;
+                    }
+                    
+                    // Rate limiting for Nominatim API
+                    await delay(1100);
+                    
+                } catch (error) {
+                    console.error(`Error searching for ${searchQuery}:`, error);
+                    failCount++;
+                }
+            }
+            
+            progressPanel.style.display = 'none';
+            
+            renderCityList();
+            updateCityButtons();
+            
+            if (state.cities.length > 0 && !state.activeCityId) {
+                showCity(state.cities[0].id);
+            }
+            
+            showToast(`Imported ${successCount} cities${failCount > 0 ? `, ${failCount} not found` : ''}`, failCount > 0 ? 'warning' : 'success');
+            
+        } catch (error) {
+            console.error('Error importing CSV:', error);
+            showToast('Failed to import CSV', 'error');
+            document.getElementById('progressPanel').style.display = 'none';
+        }
+    };
+    
+    reader.readAsText(file);
+}
+
+// Parse CSV line handling quoted values
+function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        
+        if (char === '"') {
+            inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+            result.push(current.trim());
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    
+    result.push(current.trim());
+    return result;
+}
+
+// Extract location suffix from display name
+function extractLocationSuffix(displayName, cityName) {
+    const parts = displayName.split(',');
+    if (parts.length >= 2) {
+        // Try to get state/region (usually 2nd or 3rd part)
+        for (let i = 1; i < Math.min(parts.length, 3); i++) {
+            const part = parts[i].trim();
+            if (part && part.toLowerCase() !== cityName.toLowerCase()) {
+                return part;
+            }
+        }
+    }
+    return '';
+}
+
+// ============================================
 // Boundary Styling
 // ============================================
 
@@ -1841,9 +2032,15 @@ async function exportAllCities() {
     const zip = new JSZip();
     const batchDelay = parseInt(document.getElementById('batchDelay').value);
     const includeDataLayers = document.getElementById('includeDataLayers')?.checked ?? true;
+    const includeReport = document.getElementById('includeExportReport')?.checked ?? true;
     
     // Remember which data layers are active so we can apply them to each city
     const activeLayerTypes = includeDataLayers ? Array.from(state.activeLayers) : [];
+    
+    // Export report data
+    const exportReport = [];
+    const exportStartTime = new Date();
+    const mapStyle = document.getElementById('mapStyle').value;
     
     for (let i = 0; i < state.cities.length; i++) {
         if (state.cancelExport) {
@@ -1857,6 +2054,22 @@ async function exportAllCities() {
         progressFill.style.width = `${progress}%`;
         progressText.textContent = `Exporting ${city.name} (${i + 1}/${state.cities.length})...`;
         
+        const cityExportStart = Date.now();
+        const reportEntry = {
+            index: i + 1,
+            city_name: city.name,
+            state_region: city.locationSuffix || '',
+            osm_id: city.osmId || '',
+            filename: '',
+            status: 'success',
+            error_message: '',
+            data_layers: activeLayerTypes.join(', '),
+            data_layers_loaded: [],
+            data_layers_failed: [],
+            map_style: mapStyle,
+            export_time_ms: 0
+        };
+        
         // Show city (this clears and re-adds boundary)
         showCity(city.id);
         
@@ -1869,7 +2082,9 @@ async function exportAllCities() {
         // If there are active data layers, fetch and render them for this city
         if (activeLayerTypes.length > 0) {
             progressText.textContent = `Loading data layers for ${city.name}...`;
-            await loadDataLayersForExport(activeLayerTypes);
+            const layerResults = await loadDataLayersForExportWithReport(activeLayerTypes);
+            reportEntry.data_layers_loaded = layerResults.loaded;
+            reportEntry.data_layers_failed = layerResults.failed;
         }
         
         // Additional wait for rendering to complete
@@ -1880,22 +2095,38 @@ async function exportAllCities() {
             const base64Data = dataUrl.split(',')[1];
             const filename = generateFilename(city, i + 1);
             zip.file(filename, base64Data, { base64: true });
+            reportEntry.filename = filename;
+            reportEntry.status = 'success';
         } catch (error) {
             console.error(`Error exporting ${city.name}:`, error);
+            reportEntry.status = 'failed';
+            reportEntry.error_message = error.message || 'Unknown error during capture';
         }
+        
+        reportEntry.export_time_ms = Date.now() - cityExportStart;
+        exportReport.push(reportEntry);
     }
     
     if (!state.cancelExport) {
         progressText.textContent = 'Creating ZIP file...';
         
         try {
+            // Add export report CSV to ZIP if enabled
+            if (includeReport) {
+                const reportCsv = generateExportReportCsv(exportReport, exportStartTime, activeLayerTypes);
+                zip.file('export_report.csv', reportCsv);
+            }
+            
             const content = await zip.generateAsync({ type: 'blob' });
             const zipFilename = document.getElementById('zipFilename').value || 'city_maps';
             const timestamp = document.getElementById('includeTimestamp').checked 
                 ? `_${new Date().toISOString().slice(0, 10)}` 
                 : '';
             saveAs(content, `${zipFilename}${timestamp}.zip`);
-            showToast(`Exported ${state.cities.length} cities`, 'success');
+            
+            const successCount = exportReport.filter(r => r.status === 'success').length;
+            const failCount = exportReport.filter(r => r.status === 'failed').length;
+            showToast(`Exported ${successCount} cities${failCount > 0 ? `, ${failCount} failed` : ''}`, failCount > 0 ? 'warning' : 'success');
         } catch (error) {
             console.error('ZIP creation error:', error);
             showToast('Failed to create ZIP', 'error');
@@ -1904,6 +2135,99 @@ async function exportAllCities() {
     
     progressPanel.style.display = 'none';
     state.isExporting = false;
+}
+
+// Load data layers with reporting for batch export
+async function loadDataLayersForExportWithReport(layerTypes) {
+    const bbox = getQueryBbox();
+    const results = { loaded: [], failed: [] };
+    
+    // Clear existing data layers for this city
+    Object.keys(state.layers.dataLayers).forEach(layerType => {
+        state.map.removeLayer(state.layers.dataLayers[layerType]);
+        delete state.layers.dataLayers[layerType];
+    });
+    
+    // Fetch and render each layer type
+    for (const layerType of layerTypes) {
+        const layerDef = dataLayerDefs[layerType];
+        if (!layerDef) {
+            results.failed.push(layerType);
+            continue;
+        }
+        
+        try {
+            const cacheKey = `${layerType}_${bbox.join('_')}`;
+            let data = state.layerData[cacheKey];
+            
+            if (!data) {
+                data = await fetchOverpassData(layerType, bbox);
+                state.layerData[cacheKey] = data;
+            }
+            
+            renderDataLayer(layerType, data);
+            results.loaded.push(`${layerType}(${data.elements?.length || 0})`);
+        } catch (error) {
+            console.error(`Error loading ${layerType} for export:`, error);
+            results.failed.push(layerType);
+        }
+    }
+    
+    // Wait for markers to render
+    await delay(200);
+    
+    return results;
+}
+
+// Generate CSV report for export
+function generateExportReportCsv(reportData, startTime, activeLayers) {
+    const headers = [
+        'index',
+        'city_name',
+        'state_region',
+        'osm_id',
+        'filename',
+        'status',
+        'error_message',
+        'data_layers_requested',
+        'data_layers_loaded',
+        'data_layers_failed',
+        'map_style',
+        'export_time_ms'
+    ];
+    
+    const rows = reportData.map(entry => [
+        entry.index,
+        `"${entry.city_name}"`,
+        `"${entry.state_region}"`,
+        entry.osm_id,
+        `"${entry.filename}"`,
+        entry.status,
+        `"${entry.error_message}"`,
+        `"${entry.data_layers}"`,
+        `"${entry.data_layers_loaded.join('; ')}"`,
+        `"${entry.data_layers_failed.join('; ')}"`,
+        entry.map_style,
+        entry.export_time_ms
+    ].join(','));
+    
+    // Add summary at end
+    const successCount = reportData.filter(r => r.status === 'success').length;
+    const failCount = reportData.filter(r => r.status === 'failed').length;
+    const totalTime = reportData.reduce((sum, r) => sum + r.export_time_ms, 0);
+    
+    const summary = [
+        '',
+        '# Export Summary',
+        `# Export Date: ${startTime.toISOString()}`,
+        `# Total Cities: ${reportData.length}`,
+        `# Successful: ${successCount}`,
+        `# Failed: ${failCount}`,
+        `# Total Export Time: ${Math.round(totalTime / 1000)}s`,
+        `# Data Layers: ${activeLayers.join(', ') || 'None'}`
+    ];
+    
+    return [headers.join(','), ...rows, ...summary].join('\n');
 }
 
 // Wait for map tiles to finish loading
@@ -2012,16 +2336,91 @@ async function captureMap() {
         cityIndicator.style.display = 'none';
     }
     
+    // Convert SVG elements to inline styles for better html2canvas compatibility
+    // This fixes the boundary/polygon not rendering issue
+    const svgElements = mapWrapper.querySelectorAll('svg');
+    const originalStyles = [];
+    
+    svgElements.forEach((svg, index) => {
+        originalStyles[index] = svg.style.cssText;
+        // Force SVG visibility and ensure paths are visible
+        svg.style.overflow = 'visible';
+        
+        // Process all paths and apply computed styles inline
+        svg.querySelectorAll('path').forEach(path => {
+            const computedStyle = window.getComputedStyle(path);
+            path.setAttribute('data-original-stroke', path.getAttribute('stroke') || '');
+            path.setAttribute('data-original-fill', path.getAttribute('fill') || '');
+            
+            // Apply inline styles from computed styles if not already set
+            if (!path.getAttribute('stroke') || path.getAttribute('stroke') === 'none') {
+                const stroke = computedStyle.stroke;
+                if (stroke && stroke !== 'none') {
+                    path.setAttribute('stroke', stroke);
+                }
+            }
+            if (!path.getAttribute('fill') && computedStyle.fill !== 'none') {
+                path.setAttribute('fill', computedStyle.fill);
+            }
+            if (!path.getAttribute('stroke-width')) {
+                path.setAttribute('stroke-width', computedStyle.strokeWidth || '3');
+            }
+            if (!path.getAttribute('stroke-opacity')) {
+                path.setAttribute('stroke-opacity', computedStyle.strokeOpacity || '1');
+            }
+            if (!path.getAttribute('fill-opacity')) {
+                path.setAttribute('fill-opacity', computedStyle.fillOpacity || '0.2');
+            }
+        });
+    });
+    
     // Wait for rendering
     await delay(parseInt(document.getElementById('tileLoadWait').value));
     
-    // Capture
+    // Capture with foreignObjectRendering for better SVG support
     const canvas = await html2canvas(mapWrapper, {
         scale: scale,
         backgroundColor: bgColor,
         useCORS: true,
         allowTaint: true,
-        logging: false
+        logging: false,
+        foreignObjectRendering: false,
+        onclone: (clonedDoc) => {
+            // Ensure SVG paths in cloned document have proper styles
+            const clonedSvgs = clonedDoc.querySelectorAll('svg');
+            clonedSvgs.forEach(svg => {
+                svg.style.overflow = 'visible';
+                svg.querySelectorAll('path').forEach(path => {
+                    // Ensure stroke and fill are inline
+                    const stroke = path.getAttribute('stroke');
+                    const fill = path.getAttribute('fill');
+                    const strokeWidth = path.getAttribute('stroke-width');
+                    
+                    if (stroke) path.style.stroke = stroke;
+                    if (fill) path.style.fill = fill;
+                    if (strokeWidth) path.style.strokeWidth = strokeWidth;
+                });
+            });
+        }
+    });
+    
+    // Restore original SVG styles
+    svgElements.forEach((svg, index) => {
+        svg.style.cssText = originalStyles[index] || '';
+        svg.querySelectorAll('path').forEach(path => {
+            const origStroke = path.getAttribute('data-original-stroke');
+            const origFill = path.getAttribute('data-original-fill');
+            if (origStroke !== null) {
+                if (origStroke) path.setAttribute('stroke', origStroke);
+                else path.removeAttribute('stroke');
+            }
+            if (origFill !== null) {
+                if (origFill) path.setAttribute('fill', origFill);
+                else path.removeAttribute('fill');
+            }
+            path.removeAttribute('data-original-stroke');
+            path.removeAttribute('data-original-fill');
+        });
     });
     
     // Restore elements

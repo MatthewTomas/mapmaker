@@ -497,6 +497,26 @@ html, body {
     min-width: 100px;
 }
 
+/* CSV Import Section */
+.csv-import-section {
+    margin-top: 0.5rem;
+}
+
+.csv-import-section .help-text {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.csv-import-section .panel-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.csv-import-section .btn {
+    flex: 1;
+}
+
 /* Preset Grid */
 .preset-grid {
     display: grid;
