@@ -1287,6 +1287,15 @@ function saveCityList() {
 }
 
 function loadCityListFromFile(file) {
+    const fileName = file.name.toLowerCase();
+    
+    // Route to appropriate loader based on file extension
+    if (fileName.endsWith('.csv')) {
+        importCitiesFromCsv(file);
+        return;
+    }
+    
+    // Handle JSON files
     const reader = new FileReader();
     
     reader.onload = (e) => {
@@ -1326,7 +1335,7 @@ function loadCityListFromFile(file) {
             showToast(`Loaded ${state.cities.length} cities`, 'success');
         } catch (error) {
             console.error('Error loading city list:', error);
-            showToast('Failed to load city list', 'error');
+            showToast('Failed to load city list. Make sure it\'s a valid JSON or CSV file.', 'error');
         }
     };
     
@@ -1433,7 +1442,7 @@ async function importCitiesFromCsv(file) {
                                 lat: parseFloat(cityResult.lat),
                                 lon: parseFloat(cityResult.lon),
                                 type: cityResult.type,
-                                locationSuffix: stateName || extractLocationSuffix(cityResult.display_name, cityName),
+                                locationSuffix: stateName || extractLocationSuffixFromDisplayName(cityResult.display_name, cityName),
                                 geojson: cityResult.geojson,
                                 boundingbox: cityResult.boundingbox
                             };
@@ -1498,8 +1507,8 @@ function parseCSVLine(line) {
     return result;
 }
 
-// Extract location suffix from display name
-function extractLocationSuffix(displayName, cityName) {
+// Extract location suffix from display name (for CSV import)
+function extractLocationSuffixFromDisplayName(displayName, cityName) {
     const parts = displayName.split(',');
     if (parts.length >= 2) {
         // Try to get state/region (usually 2nd or 3rd part)
