@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MapMaker - City Atlas Generator</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+          crossorigin=""/>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <header class="sidebar-header">
+                <div class="header-top">
+                    <h1>🗺️ MapMaker</h1>
+                    <div class="collapse-all-controls">
+                        <button id="expandAllBtn" class="btn-icon" title="Expand all panels">➕</button>
+                        <button id="collapseAllBtn" class="btn-icon" title="Collapse all panels">➖</button>
+                    </div>
+                </div>
+                <p class="subtitle">City Atlas Generator</p>
+            </header>
+            
+            <!-- City Search Section -->
+            <section class="panel collapsible" data-panel="search">
+                <h2 class="panel-header">
+                    <span>Search City</span>
+                    <span class="collapse-icon">▼</span>
+                </h2>
+                <div class="panel-content">
+                    <div class="search-container">
+                        <input type="text" id="citySearch" placeholder="Enter city name..." autocomplete="off">
+                        <button id="searchBtn" class="btn btn-primary">Search</button>
+                    </div>
+                    <ul id="searchResults" class="search-results"></ul>
+                </div>
+            </section>
+            
+            <!-- Selected Cities Section -->
+            <section class="panel collapsible" data-panel="cities">
+                <h2 class="panel-header">
+                    <span>Selected Cities <span id="cityCount" class="badge">0</span></span>
+                    <span class="collapse-icon">▼</span>
+                </h2>
+                <div class="panel-content">
+                    <ul id="selectedCities" class="selected-cities"></ul>
+                    <div class="panel-actions city-list-actions">
+                        <button id="clearAllBtn" class="btn btn-secondary btn-sm" disabled>Clear All</button>
+                        <button id="saveCityListBtn" class="btn btn-secondary btn-sm" disabled>💾 Save List</button>
+                        <button id="loadCityListBtn" class="btn btn-secondary btn-sm">📂 Load List</button>
+                        <input type="file" id="cityListFileInput" accept=".json" style="display: none;">
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Base Map Settings -->
+            <section class="panel collapsible" data-panel="basemap">
+                <h2 class="panel-header">
+                    <span>🗺️ Base Map</span>
+                    <span class="collapse-icon">▼</span>
+                </h2>
+                <div class="panel-content">
+                    <label class="form-label">
+                        Map Style
+                        <select id="mapStyle">
+                            <option value="osm">OpenStreetMap</option>
+                            <option value="osmHot">OSM Humanitarian</option>
+                            <option value="cartoLight">Carto Positron (Light)</option>
+                            <option value="cartoDark">Carto Dark Matter</option>
+                            <option value="cartoVoyager">Carto Voyager</option>
+                            <option value="stamenToner">Stadia Stamen Toner</option>
+                            <option value="stamenTerrain">Stadia Stamen Terrain</option>
+                            <option value="stamenWatercolor">Stadia Stamen Watercolor</option>
+                            <option value="esriWorldImagery">ESRI World Imagery</option>
+                            <option value="esriWorldTopo">ESRI World Topo</option>
+                            <option value="esriWorldStreet">ESRI World Street</option>
+                            <option value="openTopo">OpenTopoMap</option>
+                        </select>
+                    </label>
+                    
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="showAttribution" checked>
+                        Show map attribution
+                    </label>
+                    
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="showZoomControl" checked>
+                        Show zoom controls
+                    </label>
+                    
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="showScale" checked>
+                        Show scale bar
+                    </label>
+                </div>
+            </section>
+            
+            <!-- Page Layout (Print Dimensions) -->
+            <section class="panel collapsible collapsed" data-panel="pagelayout">
+                <h2 class="panel-header">
+                    <span>📄 Page Layout</span>
+                    <span class="collapse-icon">▼</span>
+                </h2>
+                <div class="panel-content">
+                    <label class="form-label">
+                        Page Size
+                        <select id="pageSize">
+                            <option value="auto">Auto (fit window)</option>
+                            <option value="letter">Letter (8.5" × 11")</option>
+                            <option value="letter-landscape">Letter Landscape (11" × 8.5")</option>
+                            <option value="tabloid">Tabloid (11" × 17")</option>
+                            <option value="tabloid-landscape">Tabloid Landscape (17" × 11")</option>
+                            <option value="a4">A4 (210 × 297mm)</option>
+                            <option value="a4-landscape">A4 Landscape (297 × 210mm)</option>
+                            <option value="a3">A3 (297 × 420mm)</option>
+                            <option value="a3-landscape">A3 Landscape (420 × 297mm)</option>
+                            <option value="square-sm">Square Small (1000px)</option>
+                            <option value="square-md">Square Medium (2000px)</option>
+                            <option value="square-lg">Square Large (4000px)</option>
+                            <option value="custom">Custom Dimensions</option>
+                        </select>
+                    </label>
+                    
+                    <div id="customDimensions" class="form-row" style="display: none;">
+                        <label class="form-label half">
+                            Width (px)
+                            <input type="number" id="customWidth" value="1920" min="100" max="10000">
+                        </label>
+                        <label class="form-label half">
+                            Height (px)
+                            <input type="number" id="customHeight" value="1080" min="100" max="10000">
+                        </label>
+                    </div>
+                    
+                    <label class="form-label">
+                        DPI (for print)
+                        <select id="exportDPI">
+                            <option value="72">72 DPI (Screen)</option>
+                            <option value="150">150 DPI (Draft)</option>
+                            <option value="300" selected>300 DPI (Print)</option>
+                            <option value="600">600 DPI (High Quality)</option>
+                        </select>
+                    </label>
+                    
+                    <div class="dimension-preview">
+                        <span class="dim-label">Export Size:</span>
+                        <span id="dimensionPreview">Auto</span>
+                    </div>
+                    
+                    <hr class="divider">
+                    
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="useFixedDimensions">
+                        Use fixed map dimensions
+                    </label>
+                    
+                    <button id="applyPageSizeBtn" class="btn btn-secondary btn-sm">Apply to Map</button>
+                </div>
+            </section>
+            
+            <!-- Boundary Styling -->
+            <section class="panel collapsible" data-panel="boundary">
+                <h2 class="panel-header">
+                    <span>🎨 Boundary Style</span>
+                    <span class="collapse-icon">▼</span>
+                </h2>
+                <div class="panel-content">
+                    <label class="form-label">
+                        Stroke Color
+                        <div class="color-input-wrapper">
+                            <input type="color" id="strokeColor" value="#10b981">
+                            <input type="text" id="strokeColorText" value="#10b981" class="color-text">
+                        </div>
+                    </label>
+                    
+                    <label class="form-label">
+                        Stroke Weight
+                        <input type="range" id="strokeWeight" min="1" max="10" value="3" class="slider">
+                        <span class="range-value" id="strokeWeightValue">3px</span>
+                    </label>
+                    
+                    <label class="form-label">
+                        Stroke Opacity
+                        <input type="range" id="strokeOpacity" min="0" max="100" value="100" class="slider">
+                        <span class="range-value" id="strokeOpacityValue">100%</span>
+                    </label>
+                    
+                    <label class="form-label">
+                        Stroke Style
+                        <select id="strokeStyle">
+                            <option value="solid">Solid</option>
+                            <option value="dashed">Dashed</option>
+                            <option value="dotted">Dotted</option>
+                        </select>
+                    </label>
+                    
+                    <hr class="divider">
+                    
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="showFill" checked>
+                        Show fill
+                    </label>
+                    
+                    <label class="form-label">
+                        Fill Color
+                        <div class="color-input-wrapper">
+                            <input type="color" id="fillColor" value="#10b981">
+                            <input type="text" id="fillColorText" value="#10b981" class="color-text">
+                        </div>
+                    </label>
+                    
+                    <label class="form-label">
+                        Fill Opacity
+                        <input type="range" id="fillOpacity" min="0" max="100" value="20" class="slider">
+                        <span class="range-value" id="fillOpacityValue">20%</span>
+                    </label>
+                    
+                    <hr class="divider">
+                    
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="showMask">
+                        Mask outside area
+                    </label>
+                    
+                    <label class="form-label">
+                        Mask Color
+                        <div class="color-input-wrapper">
+                            <input type="color" id="maskColor" value="#1f2937">
+                            <input type="text" id="maskColorText" value="#1f2937" class="color-text">
+                        </div>
+                    </label>
+                    
+                    <label class="form-label">
+                        Mask Opacity
+                        <input type="range" id="maskOpacity" min="0" max="100" value="85" class="slider">
+                        <span class="range-value" id="maskOpacityValue">85%</span>
+                    </label>
+                    
+                    <hr class="divider">
+                    
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="showCenterMarker">
+                        Show center marker
+                    </label>
+                    
+                    <label class="form-label">
+                        Marker Style
+                        <select id="markerStyle">
+                            <option value="pin">📍 Pin</option>
+                            <option value="circle">⭕ Circle</option>
+                            <option value="dot">● Dot</option>
+                        </select>
+                    </label>
+                    
+                    <label class="form-label">
+                        Marker Size
+                        <input type="range" id="markerSize" min="5" max="30" value="12" class="slider">
+                        <span class="range-value" id="markerSizeValue">12px</span>
+                    </label>
+                    
+                    <label class="form-label">
+                        Marker Color
+                        <div class="color-input-wrapper">
+                            <input type="color" id="markerColor" value="#ef4444">
+                            <input type="text" id="markerColorText" value="#ef4444" class="color-text">
+                        </div>
+                    </label>
+                </div>
+            </section>
+            
+            <!-- Additional Boundaries -->
+            <section class="panel collapsible collapsed" data-panel="additionalbounds">
+                <h2 class="panel-header">
+                    <span>🔲 Additional Boundaries</span>
+                    <span class="collapse-icon">▼</span>
+                </h2>
+                <div class="panel-content">
+                    <p class="muted small">Add parent boundaries (county, state) or sub-areas (neighborhoods, districts).</p>
+                    
+                    <div class="search-container">
+                        <input type="text" id="boundarySearch" placeholder="Search boundary..." autocomplete="off">
+                        <button id="boundarySearchBtn" class="btn btn-primary btn-sm">🔍</button>
+                    </div>
+                    <ul id="boundarySearchResults" class="search-results"></ul>
+                    
+                    <hr class="divider">
+                    
+                    <h3 class="subsection-title">Active Boundaries <span id="boundaryCount" class="badge">0</span></h3>
+                    <ul id="additionalBoundaries" class="boundary-list"></ul>
+                    
+                    <hr class="divider">
+                    
+                    <h3 class="subsection-title">Secondary Style</h3>
+                    
+                    <label class="form-label">
+                        Stroke Color
+                        <div class="color-input-wrapper">
+                            <input type="color" id="secondaryStrokeColor" value="#6b7280">
+                            <input type="text" id="secondaryStrokeColorText" value="#6b7280" class="color-text">
+                        </div>
+                    </label>
+                    
+                    <label class="form-label">
+                        Stroke Weight
+                        <input type="range" id="secondaryStrokeWeight" min="1" max="8" value="2" class="slider">
+                        <span class="range-value" id="secondaryStrokeWeightValue">2px</span>
+                    </label>
+                    
+                    <label class="form-label">
+                        Stroke Style
+                        <select id="secondaryStrokeStyle">
+                            <option value="solid">Solid</option>
+                            <option value="dashed" selected>Dashed</option>
+                            <option value="dotted">Dotted</option>
+                        </select>
+                    </label>
+                    
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="secondaryShowFill">
+                        Show fill
+                    </label>
+                </div>
+            </section>
+            
+            <!-- Labels -->
+            <section class="panel collapsible collapsed" data-panel="labels">
+                <h2 class="panel-header">
+                    <span>🏷️ Labels</span>
+                    <span class="collapse-icon">▼</span>
+                </h2>
+                <div class="panel-content">
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="showCityLabel">
+                        Show city name label
+                    </label>
+                    
+                    <label class="form-label">
+                        Label Position
+                        <select id="labelPosition">
+                            <option value="center">Center</option>
+                            <option value="top">Top</option>
+                            <option value="bottom">Bottom</option>
+                            <option value="topleft">Top Left</option>
+                            <option value="topright">Top Right</option>
+                            <option value="bottomleft">Bottom Left</option>
+                            <option value="bottomright">Bottom Right</option>
+                        </select>
+                    </label>
+                    
+                    <label class="form-label">
+                        Font Size
+                        <input type="range" id="labelFontSize" min="10" max="48" value="18" class="slider">
+                        <span class="range-value" id="labelFontSizeValue">18px</span>
+                    </label>
+                    
+                    <label class="form-label">
+                        Font Weight
+                        <select id="labelFontWeight">
+                            <option value="normal">Normal</option>
+                            <option value="bold" selected>Bold</option>
+                            <option value="lighter">Light</option>
+                        </select>
+                    </label>
+                    
+                    <label class="form-label">
+                        Label Color
+                        <div class="color-input-wrapper">
+                            <input type="color" id="labelColor" value="#ffffff">
+                            <input type="text" id="labelColorText" value="#ffffff" class="color-text">
+                        </div>
+                    </label>
+                    
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="labelShadow" checked>
+                        Text shadow
+                    </label>
+                    
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="labelBackground">
+                        Background box
+                    </label>
+                    
+                    <label class="form-label">
+                        Background Color
+                        <div class="color-input-wrapper">
+                            <input type="color" id="labelBgColor" value="#1f2937">
+                            <input type="text" id="labelBgColorText" value="#1f2937" class="color-text">
+                        </div>
+                    </label>
+                    
+                    <label class="form-label">
+                        Background Opacity
+                        <input type="range" id="labelBgOpacity" min="0" max="100" value="80" class="slider">
+                        <span class="range-value" id="labelBgOpacityValue">80%</span>
+                    </label>
+                </div>
+            </section>
+            
+            <!-- Title Block / Cartographic Elements -->
+            <section class="panel collapsible collapsed" data-panel="titleblock">
+                <h2 class="panel-header">
+                    <span>🧭 Title Block</span>
+                    <span class="collapse-icon">▼</span>
+                </h2>
+                <div class="panel-content">
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="showMapTitle">
+                        Show map title
+                    </label>
+                    
+                    <label class="form-label">
+                        Map Title
+                        <input type="text" id="mapTitle" placeholder="Enter map title...">
+                    </label>
+                    
+                    <label class="form-label">
+                        Subtitle
+                        <input type="text" id="mapSubtitle" placeholder="Optional subtitle...">
+                    </label>
+                    
+                    <label class="form-label">
+                        Title Position
+                        <select id="titlePosition">
+                            <option value="top-left">Top Left</option>
+                            <option value="top-center" selected>Top Center</option>
+                            <option value="top-right">Top Right</option>
+                            <option value="bottom-left">Bottom Left</option>
+                            <option value="bottom-center">Bottom Center</option>
+                            <option value="bottom-right">Bottom Right</option>
+                        </select>
+                    </label>
+                    
+                    <label class="form-label">
+                        Title Font Size
+                        <input type="range" id="titleFontSize" min="16" max="72" value="28" class="slider">
+                        <span class="range-value" id="titleFontSizeValue">28px</span>
+                    </label>
+                    
+                    <label class="form-label">
+                        Title Color
+                        <div class="color-input-wrapper">
+                            <input type="color" id="titleColor" value="#ffffff">
+                            <input type="text" id="titleColorText" value="#ffffff" class="color-text">
+                        </div>
+                    </label>
+                    
+                    <hr class="divider">
+                    
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="showNorthArrow">
+                        Show north arrow
+                    </label>
+                    
+                    <label class="form-label">
+                        North Arrow Style
+                        <select id="northArrowStyle">
+                            <option value="simple">Simple Arrow</option>
+                            <option value="compass">Compass Rose</option>
+                            <option value="minimal">Minimal N</option>
+                        </select>
+                    </label>
+                    
+                    <label class="form-label">
+                        North Arrow Position
+                        <select id="northArrowPosition">
+                            <option value="top-left">Top Left</option>
+                            <option value="top-right" selected>Top Right</option>
+                            <option value="bottom-left">Bottom Left</option>
+                            <option value="bottom-right">Bottom Right</option>
+                        </select>
+                    </label>
+                    
+                    <label class="form-label">
+                        North Arrow Size
+                        <input type="range" id="northArrowSize" min="30" max="120" value="60" class="slider">
+                        <span class="range-value" id="northArrowSizeValue">60px</span>
+                    </label>
+                    
+                    <hr class="divider">
+                    
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="showDateStamp">
+                        Show date stamp
+                    </label>
+                    
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="showCoordinates">
+                        Show coordinates
+                    </label>
+                </div>
+            </section>
+            
+            <!-- Annotations -->
+            <section class="panel collapsible collapsed" data-panel="annotations">
+                <h2 class="panel-header">
+                    <span>✏️ Annotations</span>
+                    <span class="collapse-icon">▼</span>
+                </h2>
+                <div class="panel-content">
+                    <div class="annotation-tools">
+                        <button id="addTextBtn" class="tool-btn" data-tool="text" title="Add Text">🅰️ Text</button>
+                        <button id="addCalloutBtn" class="tool-btn" data-tool="callout" title="Add Callout">💬 Callout</button>
+                        <button id="addMarkerBtn" class="tool-btn" data-tool="marker" title="Add Marker">📍 Marker</button>
+                    </div>
+                    
+                    <p id="annotationHint" class="muted small annotation-hint" style="display: none;">Click on map to place annotation</p>
+                    
+                    <hr class="divider">
+                    
+                    <h3 class="subsection-title">Annotations <span id="annotationCount" class="badge">0</span></h3>
+                    <ul id="annotationList" class="annotation-list"></ul>
+                    
+                    <div class="panel-actions">
+                        <button id="clearAnnotationsBtn" class="btn btn-secondary btn-sm" disabled>Clear All</button>
+                    </div>
+                    
+                    <hr class="divider">
+                    
+                    <h3 class="subsection-title">Annotation Style</h3>
+                    
+                    <label class="form-label">
+                        Font Size
+                        <input type="range" id="annotationFontSize" min="10" max="48" value="14" class="slider">
+                        <span class="range-value" id="annotationFontSizeValue">14px</span>
+                    </label>
+                    
+                    <label class="form-label">
+                        Text Color
+                        <div class="color-input-wrapper">
+                            <input type="color" id="annotationColor" value="#ffffff">
+                            <input type="text" id="annotationColorText" value="#ffffff" class="color-text">
+                        </div>
+                    </label>
+                    
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="annotationShadow" checked>
+                        Text shadow
+                    </label>
+                    
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="annotationBg" checked>
+                        Background
+                    </label>
+                </div>
+            </section>
+            
+            <!-- View Options -->
+            <section class="panel collapsible collapsed" data-panel="view">
+                <h2 class="panel-header">
+                    <span>👁️ View Options</span>
+                    <span class="collapse-icon">▼</span>
+                </h2>
+                <div class="panel-content">
+                    <label class="form-label">
+                        Fit Padding (px)
+                        <input type="range" id="fitPadding" min="0" max="200" value="50" class="slider">
+                        <span class="range-value" id="fitPaddingValue">50px</span>
+                    </label>
+                    
+                    <label class="form-label">
+                        Max Fit Zoom
+                        <input type="number" id="maxFitZoom" value="14" min="1" max="18">
+                    </label>
+                    
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="animateTransitions" checked>
+                        Animate map transitions
+                    </label>
+                    
+                    <label class="form-label">
+                        Animation Duration (ms)
+                        <input type="number" id="animationDuration" value="500" min="0" max="2000" step="100">
+                    </label>
+                </div>
+            </section>
+            
+            <!-- Export Section -->
+            <section class="panel collapsible" data-panel="export">
+                <h2 class="panel-header">
+                    <span>💾 Export Options</span>
+                    <span class="collapse-icon">▼</span>
+                </h2>
+                <div class="panel-content">
+                    <label class="form-label">
+                        Image Format
+                        <select id="imageFormat">
+                            <option value="png">PNG (lossless)</option>
+                            <option value="jpeg">JPEG (smaller file)</option>
+                            <option value="webp">WebP (modern)</option>
+                        </select>
+                    </label>
+                    
+                    <label class="form-label" id="qualityLabel">
+                        JPEG/WebP Quality
+                        <input type="range" id="imageQuality" min="10" max="100" value="92" class="slider">
+                        <span class="range-value" id="imageQualityValue">92%</span>
+                    </label>
+                    
+                    <label class="form-label">
+                        Export Scale
+                        <select id="exportScale">
+                            <option value="1">1x (Standard)</option>
+                            <option value="2" selected>2x (High DPI)</option>
+                            <option value="3">3x (Ultra HD)</option>
+                            <option value="4">4x (Maximum)</option>
+                        </select>
+                    </label>
+                    
+                    <label class="form-label">
+                        Background Color
+                        <div class="color-input-wrapper">
+                            <input type="color" id="exportBgColor" value="#1f2937">
+                            <input type="text" id="exportBgColorText" value="#1f2937" class="color-text">
+                        </div>
+                    </label>
+                    
+                    <hr class="divider">
+                    
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="hideControlsOnExport" checked>
+                        Hide map controls in export
+                    </label>
+                    
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="hideAttributionOnExport">
+                        Hide attribution in export
+                    </label>
+                    
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="hideCityIndicatorOnExport" checked>
+                        Hide city indicator in export
+                    </label>
+                    
+                    <hr class="divider">
+                    
+                    <label class="form-label">
+                        Filename Prefix
+                        <input type="text" id="filenamePrefix" value="city_map_" placeholder="Prefix...">
+                    </label>
+                    
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="includeTimestamp" checked>
+                        Include timestamp in filename
+                    </label>
+                    
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="includeIndex" checked>
+                        Include index number (batch)
+                    </label>
+                    
+                    <label class="form-label">
+                        ZIP Filename
+                        <input type="text" id="zipFilename" value="city_maps" placeholder="ZIP name...">
+                    </label>
+                    
+                    <hr class="divider">
+                    
+                    <label class="form-label">
+                        Batch Export Delay (ms)
+                        <input type="range" id="batchDelay" min="500" max="3000" value="1000" step="100" class="slider">
+                        <span class="range-value" id="batchDelayValue">1000ms</span>
+                    </label>
+                    
+                    <label class="form-label">
+                        Tile Load Wait (ms)
+                        <input type="range" id="tileLoadWait" min="200" max="2000" value="500" step="100" class="slider">
+                        <span class="range-value" id="tileLoadWaitValue">500ms</span>
+                    </label>
+                    
+                    <div class="panel-actions export-actions">
+                        <button id="exportCurrentBtn" class="btn btn-primary" disabled>
+                            📷 Export Current View
+                        </button>
+                        <button id="exportAllBtn" class="btn btn-success" disabled>
+                            📦 Export All as ZIP
+                        </button>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Progress Section (hidden by default) -->
+            <section id="progressPanel" class="panel progress-panel" style="display: none;">
+                <h2>Export Progress</h2>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div id="progressFill" class="progress-fill"></div>
+                    </div>
+                    <p id="progressText">Exporting...</p>
+                    <button id="cancelExportBtn" class="btn btn-secondary btn-sm">Cancel</button>
+                </div>
+            </section>
+            
+            <!-- Presets Section -->
+            <section class="panel collapsible collapsed" data-panel="presets">
+                <h2 class="panel-header">
+                    <span>⚡ Style Presets</span>
+                    <span class="collapse-icon">▼</span>
+                </h2>
+                <div class="panel-content">
+                    <div class="preset-grid">
+                        <button class="preset-btn" data-preset="default">Default</button>
+                        <button class="preset-btn" data-preset="minimal">Minimal</button>
+                        <button class="preset-btn" data-preset="bold">Bold</button>
+                        <button class="preset-btn" data-preset="neon">Neon</button>
+                        <button class="preset-btn" data-preset="vintage">Vintage</button>
+                        <button class="preset-btn" data-preset="blueprint">Blueprint</button>
+                        <button class="preset-btn" data-preset="satellite">Satellite</button>
+                        <button class="preset-btn" data-preset="dark">Dark Mode</button>
+                    </div>
+                    
+                    <hr class="divider">
+                    
+                    <div class="custom-preset-actions">
+                        <button id="savePresetBtn" class="btn btn-secondary btn-sm">💾 Save Current</button>
+                        <button id="loadPresetBtn" class="btn btn-secondary btn-sm">📂 Load Preset</button>
+                        <input type="file" id="presetFileInput" accept=".json" style="display: none;">
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Future: Data Layers Section -->
+            <section class="panel collapsible collapsed panel-future" data-panel="datalayers">
+                <h2 class="panel-header">
+                    <span>📊 Data Layers <span class="badge badge-coming">Coming Soon</span></span>
+                    <span class="collapse-icon">▼</span>
+                </h2>
+                <div class="panel-content">
+                    <p class="muted">Add data overlays and loop through layer combinations for batch export.</p>
+                </div>
+            </section>
+            
+            <footer class="sidebar-footer">
+                <p>Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors</p>
+                <p class="version">MapMaker v1.1</p>
+            </footer>
+        </aside>
+        
+        <!-- Map Container -->
+        <main class="map-container">
+            <div id="mapWrapper">
+                <div id="map"></div>
+                
+                <!-- Title Block Overlay -->
+                <div id="titleBlockOverlay" class="title-block-overlay" style="display: none;">
+                    <div id="mapTitleDisplay" class="map-title"></div>
+                    <div id="mapSubtitleDisplay" class="map-subtitle"></div>
+                </div>
+                
+                <!-- North Arrow Overlay -->
+                <div id="northArrowOverlay" class="north-arrow-overlay" style="display: none;"></div>
+                
+                <!-- Info Overlay (date, coordinates) -->
+                <div id="infoOverlay" class="info-overlay" style="display: none;"></div>
+            </div>
+            
+            <!-- Map Controls Overlay -->
+            <div class="map-overlay top-right">
+                <button id="zoomToFitBtn" class="map-btn" title="Zoom to fit selected city">
+                    🎯 Fit
+                </button>
+                <button id="resetViewBtn" class="map-btn" title="Reset to world view">
+                    🌍 Reset
+                </button>
+            </div>
+            
+            <!-- Current City Indicator -->
+            <div id="currentCityIndicator" class="map-overlay bottom-center" style="display: none;">
+                <span id="currentCityName"></span>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Annotation Edit Modal -->
+    <div id="annotationModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Edit Annotation</h3>
+            <label class="form-label">
+                Text
+                <textarea id="annotationTextInput" rows="3" placeholder="Enter annotation text..."></textarea>
+            </label>
+            <div class="modal-actions">
+                <button id="saveAnnotationBtn" class="btn btn-primary">Save</button>
+                <button id="cancelAnnotationBtn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
+            crossorigin=""></script>
+    
+    <!-- html2canvas for image export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- JSZip for bundling multiple exports -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
+    <!-- FileSaver for saving zip files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    
+    <!-- Application JS -->
+    <script src="app.js"></script>
+</body>
+</html>
