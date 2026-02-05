@@ -664,14 +664,19 @@
                     
                     <label class="form-label">
                         Batch Export Delay (ms)
-                        <input type="range" id="batchDelay" min="500" max="3000" value="1000" step="100" class="slider">
-                        <span class="range-value" id="batchDelayValue">1000ms</span>
+                        <input type="range" id="batchDelay" min="500" max="5000" value="1500" step="100" class="slider">
+                        <span class="range-value" id="batchDelayValue">1500ms</span>
                     </label>
                     
                     <label class="form-label">
                         Tile Load Wait (ms)
-                        <input type="range" id="tileLoadWait" min="200" max="2000" value="500" step="100" class="slider">
-                        <span class="range-value" id="tileLoadWaitValue">500ms</span>
+                        <input type="range" id="tileLoadWait" min="500" max="3000" value="1000" step="100" class="slider">
+                        <span class="range-value" id="tileLoadWaitValue">1000ms</span>
+                    </label>
+                    
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="includeDataLayers" checked>
+                        Include active data layers in export
                     </label>
                     
                     <div class="panel-actions export-actions">

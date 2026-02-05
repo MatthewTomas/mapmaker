@@ -1840,6 +1840,10 @@ async function exportAllCities() {
     
     const zip = new JSZip();
     const batchDelay = parseInt(document.getElementById('batchDelay').value);
+    const includeDataLayers = document.getElementById('includeDataLayers')?.checked ?? true;
+    
+    // Remember which data layers are active so we can apply them to each city
+    const activeLayerTypes = includeDataLayers ? Array.from(state.activeLayers) : [];
     
     for (let i = 0; i < state.cities.length; i++) {
         if (state.cancelExport) {
@@ -1853,10 +1857,22 @@ async function exportAllCities() {
         progressFill.style.width = `${progress}%`;
         progressText.textContent = `Exporting ${city.name} (${i + 1}/${state.cities.length})...`;
         
-        // Show city
+        // Show city (this clears and re-adds boundary)
         showCity(city.id);
         
-        // Wait for tiles to load
+        // Wait for map to settle and tiles to start loading
+        await delay(300);
+        
+        // Wait for tiles to actually load
+        await waitForTilesToLoad();
+        
+        // If there are active data layers, fetch and render them for this city
+        if (activeLayerTypes.length > 0) {
+            progressText.textContent = `Loading data layers for ${city.name}...`;
+            await loadDataLayersForExport(activeLayerTypes);
+        }
+        
+        // Additional wait for rendering to complete
         await delay(batchDelay);
         
         try {
@@ -1888,6 +1904,81 @@ async function exportAllCities() {
     
     progressPanel.style.display = 'none';
     state.isExporting = false;
+}
+
+// Wait for map tiles to finish loading
+function waitForTilesToLoad() {
+    return new Promise((resolve) => {
+        // Check if tiles are already loaded
+        let pendingTiles = 0;
+        
+        state.map.eachLayer((layer) => {
+            if (layer._loading) {
+                pendingTiles++;
+            }
+        });
+        
+        if (pendingTiles === 0) {
+            // Give a bit more time for rendering
+            setTimeout(resolve, 500);
+            return;
+        }
+        
+        // Wait for 'load' event with timeout
+        const timeout = setTimeout(() => {
+            resolve();
+        }, 5000); // Max 5 second wait
+        
+        const onLoad = () => {
+            clearTimeout(timeout);
+            // Small additional delay after load event
+            setTimeout(resolve, 300);
+        };
+        
+        state.map.once('load', onLoad);
+        
+        // Also listen for tile layer load events
+        state.map.eachLayer((layer) => {
+            if (layer.once && layer._url) {
+                layer.once('load', onLoad);
+            }
+        });
+    });
+}
+
+// Load data layers for batch export
+async function loadDataLayersForExport(layerTypes) {
+    const bbox = getQueryBbox();
+    
+    // Clear existing data layers for this city
+    Object.keys(state.layers.dataLayers).forEach(layerType => {
+        state.map.removeLayer(state.layers.dataLayers[layerType]);
+        delete state.layers.dataLayers[layerType];
+    });
+    
+    // Fetch and render each layer type
+    for (const layerType of layerTypes) {
+        const layerDef = dataLayerDefs[layerType];
+        if (!layerDef) continue;
+        
+        try {
+            // Check cache first (with new bbox)
+            const cacheKey = `${layerType}_${bbox.join('_')}`;
+            let data = state.layerData[cacheKey];
+            
+            if (!data) {
+                data = await fetchOverpassData(layerType, bbox);
+                state.layerData[cacheKey] = data;
+            }
+            
+            renderDataLayer(layerType, data);
+        } catch (error) {
+            console.error(`Error loading ${layerType} for export:`, error);
+        }
+    }
+    
+    // Wait for markers to render
+    await delay(200);
 }
 
 async function captureMap() {
