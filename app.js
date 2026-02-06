@@ -297,6 +297,227 @@ const dataLayerDefs = {
 };
 
 // ============================================
+// Census Data Variables (ACS 5-Year Estimates)
+// ============================================
+
+const censusVariables = {
+    // Population & Demographics
+    total_population: {
+        name: 'Total Population',
+        variable: 'B01003_001E',
+        category: 'demographics',
+        format: 'number',
+        icon: '👥'
+    },
+    median_age: {
+        name: 'Median Age',
+        variable: 'B01002_001E',
+        category: 'demographics',
+        format: 'decimal',
+        unit: 'years',
+        icon: '📅'
+    },
+    population_density: {
+        name: 'Population Density',
+        variable: 'B01003_001E', // Calculated with area
+        category: 'demographics',
+        format: 'density',
+        unit: 'per sq mi',
+        icon: '📊',
+        calculated: true
+    },
+    
+    // Race & Ethnicity
+    white_population: {
+        name: 'White Population',
+        variable: 'B02001_002E',
+        category: 'race',
+        format: 'number',
+        icon: '👤'
+    },
+    black_population: {
+        name: 'Black/African American',
+        variable: 'B02001_003E',
+        category: 'race',
+        format: 'number',
+        icon: '👤'
+    },
+    asian_population: {
+        name: 'Asian Population',
+        variable: 'B02001_005E',
+        category: 'race',
+        format: 'number',
+        icon: '👤'
+    },
+    hispanic_population: {
+        name: 'Hispanic/Latino',
+        variable: 'B03003_003E',
+        category: 'race',
+        format: 'number',
+        icon: '👤'
+    },
+    
+    // Housing
+    total_housing_units: {
+        name: 'Total Housing Units',
+        variable: 'B25001_001E',
+        category: 'housing',
+        format: 'number',
+        icon: '🏠'
+    },
+    median_home_value: {
+        name: 'Median Home Value',
+        variable: 'B25077_001E',
+        category: 'housing',
+        format: 'currency',
+        icon: '💰'
+    },
+    median_rent: {
+        name: 'Median Rent',
+        variable: 'B25064_001E',
+        category: 'housing',
+        format: 'currency',
+        icon: '🏢'
+    },
+    vacancy_rate: {
+        name: 'Vacancy Rate',
+        variables: ['B25002_003E', 'B25002_001E'], // Vacant / Total
+        category: 'housing',
+        format: 'percent',
+        icon: '🚪',
+        calculated: true
+    },
+    owner_occupied: {
+        name: 'Owner-Occupied',
+        variable: 'B25003_002E',
+        category: 'housing',
+        format: 'number',
+        icon: '🔑'
+    },
+    renter_occupied: {
+        name: 'Renter-Occupied',
+        variable: 'B25003_003E',
+        category: 'housing',
+        format: 'number',
+        icon: '📋'
+    },
+    
+    // Income & Poverty
+    median_household_income: {
+        name: 'Median Household Income',
+        variable: 'B19013_001E',
+        category: 'income',
+        format: 'currency',
+        icon: '💵'
+    },
+    per_capita_income: {
+        name: 'Per Capita Income',
+        variable: 'B19301_001E',
+        category: 'income',
+        format: 'currency',
+        icon: '💳'
+    },
+    poverty_rate: {
+        name: 'Poverty Rate',
+        variables: ['B17001_002E', 'B17001_001E'], // Below poverty / Total
+        category: 'income',
+        format: 'percent',
+        icon: '📉',
+        calculated: true
+    },
+    
+    // Education
+    bachelors_degree: {
+        name: "Bachelor's Degree or Higher",
+        variable: 'B15003_022E', // Need sum of 22-25
+        category: 'education',
+        format: 'number',
+        icon: '🎓'
+    },
+    high_school_graduate: {
+        name: 'High School Graduate+',
+        variable: 'B15003_017E',
+        category: 'education',
+        format: 'number',
+        icon: '📚'
+    },
+    
+    // Employment
+    labor_force: {
+        name: 'Labor Force',
+        variable: 'B23025_002E',
+        category: 'employment',
+        format: 'number',
+        icon: '💼'
+    },
+    employed: {
+        name: 'Employed',
+        variable: 'B23025_004E',
+        category: 'employment',
+        format: 'number',
+        icon: '👔'
+    },
+    unemployed: {
+        name: 'Unemployed',
+        variable: 'B23025_005E',
+        category: 'employment',
+        format: 'number',
+        icon: '📊'
+    },
+    unemployment_rate: {
+        name: 'Unemployment Rate',
+        variables: ['B23025_005E', 'B23025_002E'], // Unemployed / Labor Force
+        category: 'employment',
+        format: 'percent',
+        icon: '📈',
+        calculated: true
+    },
+    
+    // Transportation
+    commute_time: {
+        name: 'Mean Commute Time',
+        variable: 'B08135_001E',
+        category: 'transportation',
+        format: 'decimal',
+        unit: 'min',
+        icon: '🚗'
+    },
+    work_from_home: {
+        name: 'Work From Home',
+        variable: 'B08301_021E',
+        category: 'transportation',
+        format: 'number',
+        icon: '🏠'
+    },
+    public_transit: {
+        name: 'Public Transit Commuters',
+        variable: 'B08301_010E',
+        category: 'transportation',
+        format: 'number',
+        icon: '🚌'
+    },
+    
+    // Health Insurance
+    insured: {
+        name: 'With Health Insurance',
+        variable: 'B27001_004E',
+        category: 'health',
+        format: 'number',
+        icon: '🏥'
+    },
+    uninsured: {
+        name: 'Without Health Insurance',
+        variable: 'B27001_005E',
+        category: 'health',
+        format: 'number',
+        icon: '❌'
+    }
+};
+
+// Census data cache
+state.censusData = {};
+
+// ============================================
 // Initialization
 // ============================================
 
@@ -308,6 +529,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setupSliderDisplays();
     updateDimensionPreview();
     setupDataLayerListeners();
+    setupCensusListeners();
+    setupChoroplethListeners();
 });
 
 function initializeMap() {
@@ -327,6 +550,18 @@ function initializeMap() {
         imperial: true,
         metric: true
     }).addTo(state.map);
+    
+    // Create custom pane for choropleth (below overlay pane z=400, above tile pane z=200)
+    state.map.createPane('choroplethPane');
+    state.map.getPane('choroplethPane').style.zIndex = 350;
+    state.map.getPane('choroplethPane').style.pointerEvents = 'auto';
+    
+    // Disable pointer-events on the overlay pane so the choropleth SVG can receive
+    // mouse events. With preferCanvas:true, the overlay pane holds a <canvas> element
+    // that covers the full map and blocks all clicks/hovers on layers below it, even
+    // if individual shapes are interactive:false. The boundary/mask layers in the
+    // overlay pane don't need to be interactive.
+    state.map.getPane('overlayPane').style.pointerEvents = 'none';
     
     // Add layer groups to map
     state.layers.additionalBoundaries.addTo(state.map);
@@ -625,6 +860,29 @@ function setupCollapsiblePanels() {
             const isCollapsed = panel.classList.contains('collapsed');
             localStorage.setItem(`panel_${panelId}`, isCollapsed ? 'collapsed' : 'expanded');
         });
+    });
+    
+    // Setup collapsible subsections
+    const subsections = document.querySelectorAll('.collapsible-subsection');
+    subsections.forEach(subsection => {
+        const header = subsection.querySelector('.subsection-header');
+        const subsectionId = subsection.dataset.subsection;
+        
+        if (header) {
+            // Load saved state
+            const savedState = localStorage.getItem(`subsection_${subsectionId}`);
+            if (savedState === 'collapsed') {
+                subsection.classList.add('collapsed');
+            }
+            
+            header.addEventListener('click', () => {
+                subsection.classList.toggle('collapsed');
+                
+                // Save state
+                const isCollapsed = subsection.classList.contains('collapsed');
+                localStorage.setItem(`subsection_${subsectionId}`, isCollapsed ? 'collapsed' : 'expanded');
+            });
+        }
     });
 }
 
@@ -1195,6 +1453,9 @@ function clearMapLayers() {
     state.layers.markers.clearLayers();
     state.layers.labels.clearLayers();
     state.currentBoundaryLayer = null;
+    
+    // Clear choropleth when switching cities
+    clearCensusChoropleth();
 }
 
 function renderCityList() {
@@ -2012,11 +2273,81 @@ async function exportCurrentView() {
     const city = state.cities.find(c => c.id === state.activeCityId);
     if (!city) return;
     
+    const includeReport = document.getElementById('includeExportReport')?.checked ?? true;
+    const includeCensus = document.getElementById('includeCensusInExport')?.checked ?? true;
+    
     showToast('Preparing export...', 'success');
     
     try {
+        // Capture the map image
         const dataUrl = await captureMap();
         downloadImage(dataUrl, generateFilename(city));
+        
+        // Generate CSV report if enabled
+        if (includeReport) {
+            const mapStyle = document.getElementById('mapStyle').value;
+            const reportRow = {
+                index: 1,
+                name: city.name,
+                displayName: city.displayName || '',
+                lat: city.lat.toFixed(6),
+                lng: city.lng.toFixed(6),
+                zoom: state.map.getZoom(),
+                boundaryType: city.boundaryType || 'none',
+                osmId: city.osmId || '',
+                mapStyle: mapStyle,
+                dataLayers: Array.from(state.activeLayers).join('; '),
+                exportTime: new Date().toISOString()
+            };
+            
+            // Add Census data if enabled
+            if (includeCensus) {
+                const selectedCensusVars = getSelectedCensusVariables();
+                if (selectedCensusVars.length > 0) {
+                    try {
+                        const censusData = await fetchCensusDataForCity(city);
+                        if (censusData) {
+                            for (const varName of selectedCensusVars) {
+                                const def = censusVariables[varName];
+                                if (def && censusData[varName] !== undefined) {
+                                    reportRow[`census_${varName}`] = censusData[varName];
+                                }
+                            }
+                            reportRow.census_status = 'success';
+                        } else {
+                            reportRow.census_status = 'not_found';
+                        }
+                    } catch (err) {
+                        console.error('Census fetch error:', err);
+                        reportRow.census_status = 'error';
+                    }
+                }
+            }
+            
+            // Generate CSV
+            const headers = Object.keys(reportRow);
+            const csvContent = [
+                headers.join(','),
+                headers.map(h => {
+                    const val = reportRow[h];
+                    if (typeof val === 'string' && (val.includes(',') || val.includes('"'))) {
+                        return `"${val.replace(/"/g, '""')}"`;
+                    }
+                    return val ?? '';
+                }).join(',')
+            ].join('\n');
+            
+            // Download CSV
+            const csvBlob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+            const csvUrl = URL.createObjectURL(csvBlob);
+            const csvFilename = generateFilename(city).replace(/\.(png|jpg|jpeg|webp)$/, '_report.csv');
+            const csvLink = document.createElement('a');
+            csvLink.download = csvFilename;
+            csvLink.href = csvUrl;
+            csvLink.click();
+            URL.revokeObjectURL(csvUrl);
+        }
+        
         showToast('Export complete!', 'success');
     } catch (error) {
         console.error('Export error:', error);
@@ -2044,9 +2375,12 @@ async function exportAllCities() {
     const batchDelay = parseInt(document.getElementById('batchDelay').value);
     const includeDataLayers = document.getElementById('includeDataLayers')?.checked ?? true;
     const includeReport = document.getElementById('includeExportReport')?.checked ?? true;
+    const includeCensus = document.getElementById('includeCensusInExport')?.checked ?? true;
+    const showCensusOverlay = document.getElementById('showCensusOverlay')?.checked ?? false;
     
     // Remember which data layers are active so we can apply them to each city
     const activeLayerTypes = includeDataLayers ? Array.from(state.activeLayers) : [];
+    const selectedCensusVars = includeCensus ? getSelectedCensusVariables() : [];
     
     // Export report data
     const exportReport = [];
@@ -2078,7 +2412,8 @@ async function exportAllCities() {
             data_layers_loaded: [],
             data_layers_failed: [],
             map_style: mapStyle,
-            export_time_ms: 0
+            export_time_ms: 0,
+            census_data: {}
         };
         
         // Show city (this clears and re-adds boundary)
@@ -2096,6 +2431,23 @@ async function exportAllCities() {
             const layerResults = await loadDataLayersForExportWithReport(activeLayerTypes);
             reportEntry.data_layers_loaded = layerResults.loaded;
             reportEntry.data_layers_failed = layerResults.failed;
+        }
+        
+        // Fetch Census data if enabled
+        if (includeCensus && selectedCensusVars.length > 0) {
+            progressText.textContent = `Fetching Census data for ${city.name}...`;
+            try {
+                const censusData = await fetchCensusDataForCity(city);
+                if (censusData) {
+                    reportEntry.census_data = getCensusDataForExportRow(city.id);
+                    // Update overlay if enabled
+                    if (showCensusOverlay) {
+                        updateCensusOverlay();
+                    }
+                }
+            } catch (error) {
+                console.log('Census fetch failed for', city.name, error);
+            }
         }
         
         // Additional wait for rendering to complete
@@ -2118,13 +2470,16 @@ async function exportAllCities() {
         exportReport.push(reportEntry);
     }
     
+    // Remove census overlay after export
+    removeCensusOverlay();
+    
     if (!state.cancelExport) {
         progressText.textContent = 'Creating ZIP file...';
         
         try {
             // Add export report CSV to ZIP if enabled
             if (includeReport) {
-                const reportCsv = generateExportReportCsv(exportReport, exportStartTime, activeLayerTypes);
+                const reportCsv = generateExportReportCsv(exportReport, exportStartTime, activeLayerTypes, selectedCensusVars);
                 zip.file('export_report.csv', reportCsv);
             }
             
@@ -2191,7 +2546,8 @@ async function loadDataLayersForExportWithReport(layerTypes) {
 }
 
 // Generate CSV report for export
-function generateExportReportCsv(reportData, startTime, activeLayers) {
+function generateExportReportCsv(reportData, startTime, activeLayers, censusVars = []) {
+    // Base headers
     const headers = [
         'index',
         'city_name',
@@ -2207,25 +2563,40 @@ function generateExportReportCsv(reportData, startTime, activeLayers) {
         'export_time_ms'
     ];
     
-    const rows = reportData.map(entry => [
-        entry.index,
-        `"${entry.city_name}"`,
-        `"${entry.state_region}"`,
-        entry.osm_id,
-        `"${entry.filename}"`,
-        entry.status,
-        `"${entry.error_message}"`,
-        `"${entry.data_layers}"`,
-        `"${entry.data_layers_loaded.join('; ')}"`,
-        `"${entry.data_layers_failed.join('; ')}"`,
-        entry.map_style,
-        entry.export_time_ms
-    ].join(','));
+    // Add Census variable headers
+    const censusHeaders = censusVars.map(v => `census_${v}`);
+    const allHeaders = [...headers, ...censusHeaders];
+    
+    const rows = reportData.map(entry => {
+        const baseRow = [
+            entry.index,
+            `"${entry.city_name}"`,
+            `"${entry.state_region}"`,
+            entry.osm_id,
+            `"${entry.filename}"`,
+            entry.status,
+            `"${entry.error_message}"`,
+            `"${entry.data_layers}"`,
+            `"${entry.data_layers_loaded.join('; ')}"`,
+            `"${entry.data_layers_failed.join('; ')}"`,
+            entry.map_style,
+            entry.export_time_ms
+        ];
+        
+        // Add Census data values
+        const censusRow = censusVars.map(v => {
+            const val = entry.census_data?.[`census_${v}`];
+            return val !== undefined && val !== null ? val : '';
+        });
+        
+        return [...baseRow, ...censusRow].join(',');
+    });
     
     // Add summary at end
     const successCount = reportData.filter(r => r.status === 'success').length;
     const failCount = reportData.filter(r => r.status === 'failed').length;
     const totalTime = reportData.reduce((sum, r) => sum + r.export_time_ms, 0);
+    const citiesWithCensus = reportData.filter(r => Object.keys(r.census_data || {}).length > 0).length;
     
     const summary = [
         '',
@@ -2234,11 +2605,13 @@ function generateExportReportCsv(reportData, startTime, activeLayers) {
         `# Total Cities: ${reportData.length}`,
         `# Successful: ${successCount}`,
         `# Failed: ${failCount}`,
+        `# Cities with Census Data: ${citiesWithCensus}`,
         `# Total Export Time: ${Math.round(totalTime / 1000)}s`,
-        `# Data Layers: ${activeLayers.join(', ') || 'None'}`
+        `# Data Layers: ${activeLayers.join(', ') || 'None'}`,
+        `# Census Variables: ${censusVars.join(', ') || 'None'}`
     ];
     
-    return [headers.join(','), ...rows, ...summary].join('\n');
+    return [allHeaders.join(','), ...rows, ...summary].join('\n');
 }
 
 // Wait for map tiles to finish loading
@@ -2337,7 +2710,7 @@ async function captureMap() {
     const mapWrapper = document.getElementById('mapWrapper');
     const hideControls = document.getElementById('hideControlsOnExport').checked;
     const hideAttribution = document.getElementById('hideAttributionOnExport').checked;
-    const hideCityIndicator = document.getElementById('hideCityIndicatorOnExport').checked;
+    const hideCenterMarker = document.getElementById('hideCenterMarkerOnExport').checked;
     const scale = parseInt(document.getElementById('exportScale').value);
     const format = document.getElementById('imageFormat').value;
     const quality = parseInt(document.getElementById('imageQuality').value) / 100;
@@ -2350,6 +2723,9 @@ async function captureMap() {
     const cityIndicator = document.getElementById('currentCityIndicator');
     const mapOverlay = document.querySelector('.map-overlay.top-right');
     
+    // Store marker visibility state to restore later
+    const markersWereVisible = state.map.hasLayer(state.layers.markers);
+    
     if (hideControls) {
         if (zoomControl) zoomControl.style.display = 'none';
         if (scaleControl) scaleControl.style.display = 'none';
@@ -2360,8 +2736,10 @@ async function captureMap() {
         attribution.style.display = 'none';
     }
     
-    if (hideCityIndicator && cityIndicator) {
-        cityIndicator.style.display = 'none';
+    // Hide center marker (the actual map marker, not just the indicator)
+    if (hideCenterMarker) {
+        if (cityIndicator) cityIndicator.style.display = 'none';
+        if (markersWereVisible) state.map.removeLayer(state.layers.markers);
     }
     
     // Force a map redraw to ensure Canvas layers are rendered
@@ -2394,8 +2772,10 @@ async function captureMap() {
         attribution.style.display = 'block';
     }
     
-    if (hideCityIndicator && cityIndicator && state.activeCityId) {
-        cityIndicator.style.display = 'block';
+    // Restore center marker
+    if (hideCenterMarker) {
+        if (cityIndicator && state.activeCityId) cityIndicator.style.display = 'block';
+        if (markersWereVisible) state.layers.markers.addTo(state.map);
     }
     
     // Convert to data URL
@@ -2735,6 +3115,69 @@ function hexToRgba(hex, alpha) {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+/**
+ * Check if a point is inside a polygon using ray casting algorithm
+ * Works with GeoJSON geometry (supports Polygon and MultiPolygon)
+ * Handles both raw geometry and Feature/FeatureCollection wrappers
+ */
+function isPointInPolygon(lat, lon, geojson) {
+    if (!geojson) return true; // If no boundary, allow all points
+    
+    // Extract geometry from various GeoJSON formats
+    let geometry = geojson;
+    
+    // Handle FeatureCollection
+    if (geojson.type === 'FeatureCollection' && geojson.features?.length > 0) {
+        geometry = geojson.features[0].geometry;
+    }
+    // Handle Feature
+    else if (geojson.type === 'Feature' && geojson.geometry) {
+        geometry = geojson.geometry;
+    }
+    // Handle if geojson has a geometry property (legacy)
+    else if (geojson.geometry) {
+        geometry = geojson.geometry;
+    }
+    // Otherwise assume it's raw geometry (Polygon, MultiPolygon, etc.)
+    
+    if (!geometry || !geometry.type) return true;
+    
+    const point = [lon, lat]; // GeoJSON uses [lon, lat]
+    
+    if (geometry.type === 'Polygon') {
+        return isPointInRing(point, geometry.coordinates[0]);
+    } else if (geometry.type === 'MultiPolygon') {
+        // Check if point is in any of the polygons
+        for (const polygon of geometry.coordinates) {
+            if (isPointInRing(point, polygon[0])) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    return true; // For other geometry types, allow the point
+}
+
+/**
+ * Ray casting algorithm to check if point is inside a ring (polygon boundary)
+ */
+function isPointInRing(point, ring) {
+    const x = point[0], y = point[1];
+    let inside = false;
+    
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const xi = ring[i][0], yi = ring[i][1];
+        const xj = ring[j][0], yj = ring[j][1];
+        
+        if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) {
+            inside = !inside;
+        }
+    }
+    
+    return inside;
+}
+
 function showToast(message, type = 'success') {
     // Remove existing toast
     const existingToast = document.querySelector('.toast');
@@ -2790,6 +3233,14 @@ function setupDataLayerListeners() {
     const clusterMarkers = document.getElementById('clusterMarkers');
     if (clusterMarkers) {
         clusterMarkers.addEventListener('change', (e) => {
+            refreshAllLayers();
+        });
+    }
+    
+    // Clip to boundary checkbox
+    const clipToBoundary = document.getElementById('clipToBoundary');
+    if (clipToBoundary) {
+        clipToBoundary.addEventListener('change', (e) => {
             refreshAllLayers();
         });
     }
@@ -2944,6 +3395,16 @@ function renderDataLayer(layerType, data) {
     const markerSize = parseInt(document.getElementById('layerMarkerSize')?.value || 24);
     const showLabels = document.getElementById('showLayerLabels')?.checked || false;
     const useClustering = document.getElementById('clusterMarkers')?.checked || false;
+    const clipToBoundary = document.getElementById('clipToBoundary')?.checked ?? true;
+    
+    // Get the active city's GeoJSON for clipping
+    let activeGeojson = null;
+    if (clipToBoundary && state.activeCityId) {
+        const activeCity = state.cities.find(c => c.id === state.activeCityId);
+        if (activeCity?.geojson) {
+            activeGeojson = activeCity.geojson;
+        }
+    }
     
     if (!data.elements) return;
     
@@ -2959,6 +3420,11 @@ function renderDataLayer(layerType, data) {
             lon = element.center.lon;
         } else {
             return; // Skip if no coordinates
+        }
+        
+        // Skip if clipping is enabled and point is outside boundary
+        if (clipToBoundary && activeGeojson && !isPointInPolygon(lat, lon, activeGeojson)) {
+            return;
         }
         
         // Get name
@@ -3164,4 +3630,1486 @@ function refreshDataLayersForNewCity() {
     activeLayers.forEach(layerType => {
         enableDataLayer(layerType);
     });
+}
+
+// ============================================
+// Census Data Functions
+// ============================================
+
+// Track selected Census variables
+state.selectedCensusVars = new Set(['total_population', 'median_household_income', 'poverty_rate', 'unemployment_rate', 'median_home_value']);
+
+function setupCensusListeners() {
+    console.log('[Census] Setting up Census listeners...');
+    
+    // Preview Census data button
+    const previewCensusBtn = document.getElementById('previewCensusBtn');
+    console.log('[Census] Preview button found:', !!previewCensusBtn);
+    if (previewCensusBtn) {
+        previewCensusBtn.addEventListener('click', () => {
+            console.log('[Census] Preview button clicked!');
+            previewCensusData();
+        });
+    }
+    
+    // Clear Census cache button
+    const clearCensusBtn = document.getElementById('clearCensusBtn');
+    console.log('[Census] Clear button found:', !!clearCensusBtn);
+    if (clearCensusBtn) {
+        clearCensusBtn.addEventListener('click', () => {
+            console.log('[Census] Clear button clicked!');
+            clearCensusCache();
+        });
+    }
+    
+    // Census variable checkboxes
+    const censusCheckboxes = document.querySelectorAll('input[data-census]');
+    console.log('[Census] Found', censusCheckboxes.length, 'census checkboxes');
+    
+    censusCheckboxes.forEach(checkbox => {
+        const varName = checkbox.dataset.census;
+        // Set initial state based on default selections
+        checkbox.checked = state.selectedCensusVars.has(varName);
+        
+        checkbox.addEventListener('change', (e) => {
+            console.log('[Census] Checkbox changed:', varName, e.target.checked);
+            if (e.target.checked) {
+                state.selectedCensusVars.add(varName);
+            } else {
+                state.selectedCensusVars.delete(varName);
+            }
+            // Update overlay if visible
+            if (document.getElementById('showCensusOverlay')?.checked) {
+                updateCensusOverlay();
+            }
+        });
+    });
+    
+    // Census overlay toggle
+    const overlayToggle = document.getElementById('showCensusOverlay');
+    if (overlayToggle) {
+        overlayToggle.addEventListener('change', (e) => {
+            console.log('[Census] Overlay toggle changed:', e.target.checked);
+            if (e.target.checked) {
+                updateCensusOverlay();
+            } else {
+                removeCensusOverlay();
+            }
+        });
+    }
+    
+    console.log('[Census] Listeners setup complete');
+}
+
+async function previewCensusData() {
+    console.log('[Census] previewCensusData called');
+    console.log('[Census] Current city:', state.currentCity);
+    
+    if (!state.currentCity) {
+        showToast('Please select a city first', 'error');
+        return;
+    }
+    
+    const loadingIndicator = document.getElementById('censusLoadingIndicator');
+    const resultsContainer = document.getElementById('censusResults');
+    
+    console.log('[Census] Loading indicator:', !!loadingIndicator);
+    console.log('[Census] Results container:', !!resultsContainer);
+    
+    if (loadingIndicator) loadingIndicator.style.display = 'flex';
+    if (resultsContainer) resultsContainer.innerHTML = '<p class="muted small">Fetching data...</p>';
+    
+    try {
+        console.log('[Census] Fetching data for city:', state.currentCity.name);
+        const censusData = await fetchCensusDataForCity(state.currentCity);
+        console.log('[Census] Received data:', censusData);
+        
+        if (censusData) {
+            displayCensusPreview(censusData);
+            showToast('Census data loaded', 'success');
+            
+            // Update overlay if enabled
+            if (document.getElementById('showCensusOverlay')?.checked) {
+                updateCensusOverlay();
+            }
+        } else {
+            resultsContainer.innerHTML = '<p class="muted small">No Census data available for this city. Make sure it\'s a US city.</p>';
+        }
+        
+    } catch (error) {
+        console.error('[Census] Fetch error:', error);
+        resultsContainer.innerHTML = '<p class="muted small">Failed to fetch Census data: ' + error.message + '</p>';
+        showToast('Census fetch failed', 'error');
+    }
+    
+    if (loadingIndicator) loadingIndicator.style.display = 'none';
+}
+
+async function fetchCensusDataForCity(city) {
+    // Check cache first
+    if (state.censusData[city.id]) {
+        console.log('[Census] Using cached data for:', city.name);
+        return state.censusData[city.id];
+    }
+    
+    // Get the city name and state for Census lookup
+    const cityName = city.name;
+    const address = city.displayName || '';
+    
+    console.log('[Census] Looking up:', cityName, '| Address:', address);
+    
+    // Try to extract state from the display name
+    const stateAbbr = extractStateFromAddress(address);
+    
+    if (!stateAbbr) {
+        console.log('[Census] Could not determine state for:', cityName);
+        return null;
+    }
+    
+    console.log('[Census] State:', stateAbbr);
+    
+    // Get state FIPS code
+    const stateFips = stateAbbrToFips(stateAbbr);
+    if (!stateFips) {
+        console.log('[Census] Unknown state FIPS:', stateAbbr);
+        return null;
+    }
+    
+    console.log('[Census] State FIPS:', stateFips);
+    
+    try {
+        // First, find the place FIPS code
+        console.log('[Census] Looking up place FIPS...');
+        const placeData = await lookupCensusPlace(cityName, stateFips);
+        
+        if (!placeData) {
+            console.log('[Census] Place not found:', cityName, stateAbbr);
+            return null;
+        }
+        
+        console.log('[Census] Place found:', placeData);
+        
+        // Fetch Census variables for this place
+        console.log('[Census] Fetching variables...');
+        const rawData = await fetchCensusVariables(placeData.state, placeData.place);
+        
+        if (!rawData) {
+            console.log('[Census] No raw data returned');
+            return null;
+        }
+        
+        console.log('[Census] Raw data received:', rawData);
+        
+        // Process and cache the data
+        const processedData = processCensusData(rawData);
+        processedData.placeName = placeData.name;
+        processedData.stateFips = placeData.state;
+        processedData.placeFips = placeData.place;
+        processedData.stateAbbr = stateAbbr;
+        
+        state.censusData[city.id] = processedData;
+        
+        console.log('[Census] Processed data:', processedData);
+        
+        return processedData;
+        
+    } catch (error) {
+        console.error('[Census] Fetch error for', cityName, error);
+        return null;
+    }
+}
+
+function extractStateFromAddress(address) {
+    // Check for state abbreviation (2 letters after comma)
+    const abbrMatch = address.match(/,\s*([A-Z]{2})(?:\s|,|$)/);
+    if (abbrMatch) {
+        return abbrMatch[1];
+    }
+    
+    // Common US state names
+    const stateMap = {
+        'alabama': 'AL', 'alaska': 'AK', 'arizona': 'AZ', 'arkansas': 'AR',
+        'california': 'CA', 'colorado': 'CO', 'connecticut': 'CT', 'delaware': 'DE',
+        'florida': 'FL', 'georgia': 'GA', 'hawaii': 'HI', 'idaho': 'ID',
+        'illinois': 'IL', 'indiana': 'IN', 'iowa': 'IA', 'kansas': 'KS',
+        'kentucky': 'KY', 'louisiana': 'LA', 'maine': 'ME', 'maryland': 'MD',
+        'massachusetts': 'MA', 'michigan': 'MI', 'minnesota': 'MN', 'mississippi': 'MS',
+        'missouri': 'MO', 'montana': 'MT', 'nebraska': 'NE', 'nevada': 'NV',
+        'new hampshire': 'NH', 'new jersey': 'NJ', 'new mexico': 'NM', 'new york': 'NY',
+        'north carolina': 'NC', 'north dakota': 'ND', 'ohio': 'OH', 'oklahoma': 'OK',
+        'oregon': 'OR', 'pennsylvania': 'PA', 'rhode island': 'RI', 'south carolina': 'SC',
+        'south dakota': 'SD', 'tennessee': 'TN', 'texas': 'TX', 'utah': 'UT',
+        'vermont': 'VT', 'virginia': 'VA', 'washington': 'WA', 'west virginia': 'WV',
+        'wisconsin': 'WI', 'wyoming': 'WY', 'district of columbia': 'DC'
+    };
+    
+    const lowerAddress = address.toLowerCase();
+    for (const [stateName, abbr] of Object.entries(stateMap)) {
+        if (lowerAddress.includes(stateName)) {
+            return abbr;
+        }
+    }
+    
+    return null;
+}
+
+async function lookupCensusPlace(cityName, stateFips) {
+    try {
+        // Use 2021 ACS 5-year estimates (most stable)
+        const url = `https://api.census.gov/data/2021/acs/acs5?get=NAME&for=place:*&in=state:${stateFips}`;
+        console.log('[Census] Place lookup URL:', url);
+        
+        const response = await fetch(url);
+        console.log('[Census] Place lookup response status:', response.status);
+        
+        if (!response.ok) {
+            console.error('[Census] Place lookup failed:', response.status);
+            return null;
+        }
+        
+        const data = await response.json();
+        console.log('[Census] Found', data.length - 1, 'places in state');
+        
+        // Find matching city (case-insensitive)
+        const searchName = cityName.toLowerCase().trim();
+        
+        for (let i = 1; i < data.length; i++) {
+            const placeName = data[i][0].toLowerCase();
+            // Match city name with various suffixes
+            if (placeName.startsWith(searchName + ' ') || 
+                placeName === searchName ||
+                placeName.startsWith(searchName + ',')) {
+                console.log('[Census] Exact match found:', data[i][0]);
+                return {
+                    name: data[i][0],
+                    state: data[i][1],
+                    place: data[i][2]
+                };
+            }
+        }
+        
+        // Try partial match if exact match not found
+        for (let i = 1; i < data.length; i++) {
+            const placeName = data[i][0].toLowerCase();
+            if (placeName.includes(searchName)) {
+                console.log('[Census] Partial match found:', data[i][0]);
+                return {
+                    name: data[i][0],
+                    state: data[i][1],
+                    place: data[i][2]
+                };
+            }
+        }
+        
+        console.log('[Census] No match found for:', searchName);
+        return null;
+    } catch (error) {
+        console.error('[Census] Place lookup error:', error);
+        return null;
+    }
+}
+
+function stateAbbrToFips(abbr) {
+    const fipsMap = {
+        'AL': '01', 'AK': '02', 'AZ': '04', 'AR': '05', 'CA': '06',
+        'CO': '08', 'CT': '09', 'DE': '10', 'DC': '11', 'FL': '12',
+        'GA': '13', 'HI': '15', 'ID': '16', 'IL': '17', 'IN': '18',
+        'IA': '19', 'KS': '20', 'KY': '21', 'LA': '22', 'ME': '23',
+        'MD': '24', 'MA': '25', 'MI': '26', 'MN': '27', 'MS': '28',
+        'MO': '29', 'MT': '30', 'NE': '31', 'NV': '32', 'NH': '33',
+        'NJ': '34', 'NM': '35', 'NY': '36', 'NC': '37', 'ND': '38',
+        'OH': '39', 'OK': '40', 'OR': '41', 'PA': '42', 'RI': '44',
+        'SC': '45', 'SD': '46', 'TN': '47', 'TX': '48', 'UT': '49',
+        'VT': '50', 'VA': '51', 'WA': '53', 'WV': '54', 'WI': '55',
+        'WY': '56'
+    };
+    return fipsMap[abbr?.toUpperCase()] || null;
+}
+
+async function fetchCensusVariables(stateFips, placeFips) {
+    // Build list of all variables we might need
+    const variableList = [];
+    
+    for (const [key, def] of Object.entries(censusVariables)) {
+        if (def.variables) {
+            variableList.push(...def.variables);
+        } else if (def.variable) {
+            variableList.push(def.variable);
+        }
+    }
+    
+    const uniqueVars = [...new Set(variableList)];
+    
+    try {
+        // Use 2021 ACS 5-year estimates
+        const url = `https://api.census.gov/data/2021/acs/acs5?get=${uniqueVars.join(',')}&for=place:${placeFips}&in=state:${stateFips}`;
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            console.error('Census data fetch failed:', response.status);
+            return null;
+        }
+        
+        const data = await response.json();
+        
+        if (data.length < 2) {
+            return null;
+        }
+        
+        // Parse response into object
+        const headers = data[0];
+        const values = data[1];
+        const result = {};
+        
+        for (let i = 0; i < headers.length; i++) {
+            const value = values[i];
+            result[headers[i]] = value === null || value === '-' || value === '' ? null : parseFloat(value);
+        }
+        
+        return result;
+        
+    } catch (error) {
+        console.error('Census variables fetch error:', error);
+        return null;
+    }
+}
+
+function processCensusData(rawData) {
+    const processed = { raw: rawData };
+    
+    for (const [key, def] of Object.entries(censusVariables)) {
+        let value;
+        
+        if (def.calculated && def.variables) {
+            const numerator = rawData[def.variables[0]];
+            const denominator = rawData[def.variables[1]];
+            value = (denominator && denominator > 0) ? (numerator / denominator) * 100 : null;
+        } else {
+            value = rawData[def.variable];
+        }
+        
+        processed[key] = {
+            value: value,
+            formatted: formatCensusValue(value, def.format, def.unit),
+            name: def.name,
+            icon: def.icon,
+            format: def.format
+        };
+    }
+    
+    return processed;
+}
+
+function displayCensusPreview(data) {
+    const container = document.getElementById('censusResults');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    // Show only selected variables
+    const selectedVars = Array.from(state.selectedCensusVars);
+    
+    if (selectedVars.length === 0) {
+        container.innerHTML = '<p class="muted small">No variables selected.</p>';
+        return;
+    }
+    
+    const grid = document.createElement('div');
+    grid.className = 'census-grid';
+    
+    for (const varName of selectedVars) {
+        const varData = data[varName];
+        if (!varData || varData.value === null) continue;
+        
+        const itemEl = document.createElement('div');
+        itemEl.className = 'census-item';
+        itemEl.innerHTML = `
+            <span class="census-icon">${varData.icon}</span>
+            <span class="census-label">${varData.name}</span>
+            <span class="census-value">${varData.formatted}</span>
+        `;
+        grid.appendChild(itemEl);
+    }
+    
+    if (grid.children.length === 0) {
+        container.innerHTML = '<p class="muted small">No data available for selected variables.</p>';
+    } else {
+        container.appendChild(grid);
+    }
+}
+
+function formatCensusValue(value, format, unit) {
+    if (value === null || value === undefined || isNaN(value)) return 'N/A';
+    
+    switch (format) {
+        case 'currency':
+            return '$' + Math.round(value).toLocaleString();
+        case 'percent':
+            return value.toFixed(1) + '%';
+        case 'decimal':
+            return value.toFixed(1) + (unit ? ' ' + unit : '');
+        case 'density':
+            return value.toFixed(0) + (unit ? ' ' + unit : '');
+        case 'number':
+        default:
+            return Math.round(value).toLocaleString();
+    }
+}
+
+function updateCensusOverlay() {
+    removeCensusOverlay();
+    
+    if (!state.currentCity) return;
+    
+    const data = state.censusData[state.currentCity.id];
+    if (!data) {
+        // Try to fetch data if not cached
+        previewCensusData();
+        return;
+    }
+    
+    const mapWrapper = document.getElementById('mapWrapper');
+    if (!mapWrapper) return;
+    
+    const overlay = document.createElement('div');
+    overlay.id = 'censusOverlay';
+    overlay.className = 'census-overlay';
+    
+    const title = document.createElement('div');
+    title.className = 'census-overlay-title';
+    title.textContent = '📊 Census Data';
+    overlay.appendChild(title);
+    
+    const selectedVars = Array.from(state.selectedCensusVars);
+    
+    for (const varName of selectedVars) {
+        const varData = data[varName];
+        if (!varData || varData.value === null) continue;
+        
+        const item = document.createElement('div');
+        item.className = 'census-overlay-item';
+        item.innerHTML = `
+            <span class="census-overlay-label">${varData.name}</span>
+            <span class="census-overlay-value">${varData.formatted}</span>
+        `;
+        overlay.appendChild(item);
+    }
+    
+    mapWrapper.appendChild(overlay);
+}
+
+function removeCensusOverlay() {
+    const existing = document.getElementById('censusOverlay');
+    if (existing) {
+        existing.remove();
+    }
+}
+
+function clearCensusCache() {
+    state.censusData = {};
+    removeCensusOverlay();
+    
+    const container = document.getElementById('censusResults');
+    if (container) {
+        container.innerHTML = '';
+    }
+    
+    showToast('Census cache cleared', 'success');
+}
+
+// Get selected Census variables for export
+function getSelectedCensusVariables() {
+    return Array.from(state.selectedCensusVars);
+}
+
+// Format Census data for CSV export
+function getCensusDataForExportRow(cityId) {
+    const data = state.censusData[cityId];
+    if (!data) return {};
+    
+    const row = {};
+    for (const varName of state.selectedCensusVars) {
+        const varData = data[varName];
+        if (varData) {
+            // Use raw value for CSV, not formatted
+            row[`census_${varName}`] = varData.value;
+        }
+    }
+    return row;
+}
+
+// ============================================
+// Census Choropleth Map Functions
+// ============================================
+
+// Color schemes for choropleth
+const colorSchemes = {
+    blues: ['#f7fbff', '#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5', '#084594'],
+    greens: ['#f7fcf5', '#e5f5e0', '#c7e9c0', '#a1d99b', '#74c476', '#41ab5d', '#238b45', '#005a32'],
+    reds: ['#fff5f0', '#fee0d2', '#fcbba1', '#fc9272', '#fb6a4a', '#ef3b2c', '#cb181d', '#99000d'],
+    purples: ['#fcfbfd', '#efedf5', '#dadaeb', '#bcbddc', '#9e9ac8', '#807dba', '#6a51a3', '#4a1486'],
+    oranges: ['#fff5eb', '#fee6ce', '#fdd0a2', '#fdae6b', '#fd8d3c', '#f16913', '#d94801', '#8c2d04'],
+    viridis: ['#440154', '#482878', '#3e4a89', '#31688e', '#26838f', '#1f9e89', '#6cce5a', '#b6de2b'],
+    rdylgn: ['#d73027', '#f46d43', '#fdae61', '#fee08b', '#d9ef8b', '#a6d96a', '#66bd63', '#1a9850']
+};
+
+// Census variable definitions for choropleth
+const choroplethVariables = {
+    median_household_income: {
+        acsVariable: 'B19013_001E',
+        name: 'Median Household Income',
+        format: 'currency'
+    },
+    poverty_rate: {
+        acsVariables: ['B17001_002E', 'B17001_001E'], // Below poverty / Total
+        name: 'Poverty Rate',
+        format: 'percent',
+        calculate: (data) => data['B17001_001E'] > 0 ? (data['B17001_002E'] / data['B17001_001E']) * 100 : null
+    },
+    total_population: {
+        acsVariable: 'B01003_001E',
+        name: 'Total Population',
+        format: 'number'
+    },
+    median_home_value: {
+        acsVariable: 'B25077_001E',
+        name: 'Median Home Value',
+        format: 'currency'
+    },
+    median_rent: {
+        acsVariable: 'B25064_001E',
+        name: 'Median Rent',
+        format: 'currency'
+    },
+    unemployment_rate: {
+        acsVariables: ['B23025_005E', 'B23025_003E'], // Unemployed / In labor force
+        name: 'Unemployment Rate',
+        format: 'percent',
+        calculate: (data) => data['B23025_003E'] > 0 ? (data['B23025_005E'] / data['B23025_003E']) * 100 : null
+    },
+    bachelors_degree: {
+        acsVariables: ['B15003_022E', 'B15003_023E', 'B15003_024E', 'B15003_025E', 'B15003_001E'],
+        name: "Bachelor's Degree or Higher",
+        format: 'percent',
+        calculate: (data) => {
+            const total = data['B15003_001E'];
+            if (!total || total === 0) return null;
+            const bachelors = (data['B15003_022E'] || 0) + (data['B15003_023E'] || 0) + 
+                            (data['B15003_024E'] || 0) + (data['B15003_025E'] || 0);
+            return (bachelors / total) * 100;
+        }
+    }
+};
+
+// State for choropleth
+state.choroplethLayer = null;
+state.choroplethData = {};
+
+function setupChoroplethListeners() {
+    const loadBtn = document.getElementById('loadCensusChoropleth');
+    const clearBtn = document.getElementById('clearCensusChoropleth');
+    const opacitySlider = document.getElementById('censusLayerOpacity');
+    
+    if (loadBtn) {
+        loadBtn.addEventListener('click', loadCensusChoropleth);
+    }
+    
+    if (clearBtn) {
+        clearBtn.addEventListener('click', clearCensusChoropleth);
+    }
+    
+    if (opacitySlider) {
+        opacitySlider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            document.getElementById('censusLayerOpacityValue').textContent = Math.round(value * 100) + '%';
+            updateChoroplethOpacity(value);
+        });
+    }
+    
+    // Update choropleth when color scheme changes
+    document.getElementById('censusColorScheme')?.addEventListener('change', () => {
+        if (state.choroplethLayer) {
+            updateChoroplethColors();
+        }
+    });
+    
+    // Update choropleth when variable changes
+    document.getElementById('censusMapVariable')?.addEventListener('change', () => {
+        if (state.choroplethLayer) {
+            loadCensusChoropleth();
+        }
+    });
+}
+
+async function loadCensusChoropleth() {
+    const geoLevel = document.getElementById('censusGeoLevel').value;
+    
+    if (geoLevel === 'none') {
+        clearCensusChoropleth();
+        return;
+    }
+    
+    if (!state.currentCity) {
+        showToast('Please select a city first', 'error');
+        return;
+    }
+    
+    const loadingIndicator = document.getElementById('censusLoadingChoropleth');
+    if (loadingIndicator) loadingIndicator.style.display = 'flex';
+    
+    try {
+        // Get state FIPS from city
+        const address = state.currentCity.displayName || '';
+        const stateAbbr = extractStateFromAddress(address);
+        
+        if (!stateAbbr) {
+            showToast('Could not determine state for this city', 'error');
+            return;
+        }
+        
+        const stateFips = stateAbbrToFips(stateAbbr);
+        if (!stateFips) {
+            showToast('Unknown state', 'error');
+            return;
+        }
+        
+        // Get city bounds
+        const bounds = state.map.getBounds();
+        
+        console.log('[Choropleth] Loading', geoLevel, 'for state', stateAbbr, stateFips);
+        
+        // Fetch geographic boundaries
+        const geoData = await fetchCensusGeography(geoLevel, stateFips, bounds);
+        
+        if (!geoData || !geoData.features || geoData.features.length === 0) {
+            showToast('No census areas found in this region', 'warning');
+            return;
+        }
+        
+        console.log('[Choropleth] Found', geoData.features.length, 'geographic areas');
+        
+        // Fetch census data for these areas
+        let variable = document.getElementById('censusMapVariable').value;
+        
+        // Census blocks only have Decennial population data
+        if (geoLevel === 'block') {
+            variable = 'total_population';
+            showToast('Census blocks only support population data (2020 Decennial)', 'info');
+        }
+        
+        const censusData = await fetchChoroplethData(geoLevel, stateFips, geoData.features, variable);
+        
+        console.log('[Choropleth] Census data loaded for', Object.keys(censusData).length, 'areas');
+        
+        // Create choropleth layer
+        createChoroplethLayer(geoData, censusData, variable, geoLevel);
+        
+        showToast(`Loaded ${geoData.features.length} census areas`, 'success');
+        
+    } catch (error) {
+        console.error('[Choropleth] Error:', error);
+        showToast('Failed to load census map: ' + error.message, 'error');
+    } finally {
+        if (loadingIndicator) loadingIndicator.style.display = 'none';
+    }
+}
+
+async function fetchCensusGeography(geoLevel, stateFips, bounds) {
+    // TIGERweb layer IDs:
+    // Census Tracts: ACS2021 layer 6
+    // Block Groups: ACS2021 layer 8
+    // Census Blocks: Census2020 layer 10
+    // ZCTAs: ACS2021 layer 0
+    
+    let url;
+    const bbox = `${bounds.getWest()},${bounds.getSouth()},${bounds.getEast()},${bounds.getNorth()}`;
+    
+    if (geoLevel === 'tract') {
+        // Layer 6 = Census Tracts
+        url = `https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_ACS2021/MapServer/6/query?` +
+              `where=STATE='${stateFips}'&geometry=${bbox}&geometryType=esriGeometryEnvelope&` +
+              `inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=GEOID,NAME,BASENAME,STATE,COUNTY,TRACT&` +
+              `returnGeometry=true&outSR=4326&f=geojson`;
+    } else if (geoLevel === 'block-group') {
+        // Layer 8 = Census Block Groups
+        url = `https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_ACS2021/MapServer/8/query?` +
+              `where=STATE='${stateFips}'&geometry=${bbox}&geometryType=esriGeometryEnvelope&` +
+              `inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=GEOID,NAME,BASENAME,STATE,COUNTY,TRACT,BLKGRP&` +
+              `returnGeometry=true&outSR=4326&f=geojson`;
+    } else if (geoLevel === 'block') {
+        // Layer 10 on Census2020 service = Census Blocks
+        url = `https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Census2020/MapServer/10/query?` +
+              `where=STATE='${stateFips}'&geometry=${bbox}&geometryType=esriGeometryEnvelope&` +
+              `inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=GEOID,NAME,BASENAME,STATE,COUNTY,TRACT,BLOCK&` +
+              `returnGeometry=true&outSR=4326&f=geojson`;
+    } else if (geoLevel === 'zcta') {
+        // Layer 0 = 2020 Census ZIP Code Tabulation Areas
+        url = `https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_ACS2021/MapServer/0/query?` +
+              `where=1=1&geometry=${bbox}&geometryType=esriGeometryEnvelope&` +
+              `inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=GEOID,ZCTA5,BASENAME,NAME&` +
+              `returnGeometry=true&outSR=4326&f=geojson`;
+    }
+    
+    console.log('[Choropleth] Fetching geography:', url);
+    
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`Geography fetch failed: ${response.status}`);
+    }
+    
+    return await response.json();
+}
+
+async function fetchChoroplethData(geoLevel, stateFips, features, variable) {
+    const varDef = choroplethVariables[variable];
+    if (!varDef) return {};
+    
+    // Build list of variables to fetch
+    let varsToFetch = [];
+    if (varDef.acsVariable) {
+        varsToFetch.push(varDef.acsVariable);
+    }
+    if (varDef.acsVariables) {
+        varsToFetch = varsToFetch.concat(varDef.acsVariables);
+    }
+    
+    const varsParam = varsToFetch.join(',');
+    
+    // Build the Census API query based on geography level
+    let url;
+    
+    // Census Blocks use Decennial 2020 (only population), others use ACS 5-Year
+    const isBlock = geoLevel === 'block';
+    
+    if (geoLevel === 'tract') {
+        url = `https://api.census.gov/data/2021/acs/acs5?get=${varsParam}&for=tract:*&in=state:${stateFips}`;
+        
+    } else if (geoLevel === 'block-group') {
+        // Block groups require county in the hierarchy — fetch per county
+        const counties = [...new Set(features.map(f => f.properties.COUNTY).filter(Boolean))];
+        console.log('[Choropleth] Fetching block groups for', counties.length, 'counties:', counties);
+        
+        const allData = [];
+        let headers = null;
+        for (const county of counties) {
+            const countyUrl = `https://api.census.gov/data/2021/acs/acs5?get=${varsParam}&for=block%20group:*&in=state:${stateFips}&in=county:${county}&in=tract:*`;
+            console.log('[Choropleth] Fetching block groups for county', county);
+            const resp = await fetch(countyUrl);
+            if (!resp.ok) {
+                console.warn('[Choropleth] Failed for county', county, resp.status);
+                continue;
+            }
+            const countyData = await resp.json();
+            if (!headers) {
+                headers = countyData[0];
+                allData.push(headers);
+            }
+            // Append rows (skip header)
+            for (let i = 1; i < countyData.length; i++) {
+                allData.push(countyData[i]);
+            }
+        }
+        console.log('[Choropleth] Total block group records:', allData.length - 1);
+        // Parse directly and return
+        return parseCensusResponse(allData, geoLevel, features, variable);
+        
+    } else if (geoLevel === 'block') {
+        // Census blocks use Decennial 2020 PL data — only population is available
+        const counties = [...new Set(features.map(f => f.properties.COUNTY).filter(Boolean))];
+        console.log('[Choropleth] Fetching blocks for', counties.length, 'counties');
+        
+        const allData = [];
+        let headers = null;
+        for (const county of counties) {
+            const blockUrl = `https://api.census.gov/data/2020/dec/pl?get=P1_001N&for=block:*&in=state:${stateFips}&in=county:${county}&in=tract:*`;
+            const resp = await fetch(blockUrl);
+            if (!resp.ok) {
+                console.warn('[Choropleth] Failed for county', county, resp.status);
+                continue;
+            }
+            const blockData = await resp.json();
+            if (!headers) {
+                headers = blockData[0];
+                allData.push(headers);
+            }
+            for (let i = 1; i < blockData.length; i++) {
+                allData.push(blockData[i]);
+            }
+        }
+        console.log('[Choropleth] Total block records:', allData.length - 1);
+        return parseCensusResponse(allData, geoLevel, features, variable);
+        
+    } else if (geoLevel === 'zcta') {
+        url = `https://api.census.gov/data/2021/acs/acs5?get=${varsParam}&for=zip%20code%20tabulation%20area:*`;
+    }
+    
+    console.log('[Choropleth] Fetching census data:', url);
+    
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`Census data fetch failed: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // Use shared parser
+    return parseCensusResponse(data, geoLevel, features, variable);
+}
+
+function parseCensusResponse(data, geoLevel, features, variable) {
+    if (!data || data.length < 2) return {};
+    
+    const varDef = choroplethVariables[variable];
+    const result = {};
+    const headers = data[0];
+    
+    console.log('[Choropleth] Census API headers:', headers);
+    if (data.length > 1) {
+        console.log('[Choropleth] Sample row:', data[1]);
+    }
+    
+    if (features.length > 0) {
+        console.log('[Choropleth] Sample geo GEOIDs:', features.slice(0, 3).map(f => f.properties.GEOID));
+    }
+    
+    for (let i = 1; i < data.length; i++) {
+        const row = data[i];
+        let geoid;
+        
+        if (geoLevel === 'tract') {
+            const stateIdx = headers.indexOf('state');
+            const countyIdx = headers.indexOf('county');
+            const tractIdx = headers.indexOf('tract');
+            geoid = row[stateIdx] + row[countyIdx] + row[tractIdx];
+        } else if (geoLevel === 'block-group') {
+            const stateIdx = headers.indexOf('state');
+            const countyIdx = headers.indexOf('county');
+            const tractIdx = headers.indexOf('tract');
+            const bgIdx = headers.indexOf('block group');
+            geoid = row[stateIdx] + row[countyIdx] + row[tractIdx] + row[bgIdx];
+        } else if (geoLevel === 'block') {
+            const stateIdx = headers.indexOf('state');
+            const countyIdx = headers.indexOf('county');
+            const tractIdx = headers.indexOf('tract');
+            const blkIdx = headers.indexOf('block');
+            geoid = row[stateIdx] + row[countyIdx] + row[tractIdx] + row[blkIdx];
+        } else if (geoLevel === 'zcta') {
+            const zctaIdx = headers.indexOf('zip code tabulation area');
+            geoid = row[zctaIdx];
+        }
+        
+        // For Census blocks, data is just population (P1_001N)
+        if (geoLevel === 'block') {
+            const popIdx = headers.indexOf('P1_001N');
+            if (popIdx >= 0) {
+                const val = row[popIdx];
+                const parsed = (val === null || val === '-' || val === '') ? null : parseFloat(val);
+                if (parsed !== null && !isNaN(parsed)) {
+                    result[geoid] = parsed;
+                }
+            }
+            continue;
+        }
+        
+        // Build list of variables to check
+        let varsToCheck = [];
+        if (varDef.acsVariable) varsToCheck.push(varDef.acsVariable);
+        if (varDef.acsVariables) varsToCheck = varsToCheck.concat(varDef.acsVariables);
+        
+        // Parse values
+        const values = {};
+        for (const varName of varsToCheck) {
+            const idx = headers.indexOf(varName);
+            if (idx >= 0) {
+                const val = row[idx];
+                values[varName] = (val === null || val === '-' || val === '' || val === '-666666666') ? null : parseFloat(val);
+            }
+        }
+        
+        let finalValue;
+        if (varDef.calculate) {
+            finalValue = varDef.calculate(values);
+        } else {
+            finalValue = values[varDef.acsVariable];
+        }
+        
+        if (finalValue !== null && !isNaN(finalValue) && finalValue >= -999999) {
+            result[geoid] = finalValue;
+        }
+    }
+    
+    // Log match stats
+    const geoIds = new Set(features.map(f => f.properties.GEOID));
+    const matchedRaw = [...geoIds].filter(id => result[id] !== undefined).length;
+    const matchedNorm = [...geoIds].filter(id => result[normalizeGeoId(id)] !== undefined).length;
+    console.log('[Choropleth] Match stats: geo areas=' + geoIds.size + ', census records=' + Object.keys(result).length + ', raw matched=' + matchedRaw + ', normalized matched=' + matchedNorm);
+    if (matchedRaw === 0 && matchedNorm === 0 && geoIds.size > 0 && Object.keys(result).length > 0) {
+        const sampleGeo = [...geoIds].slice(0, 3);
+        const sampleCensus = Object.keys(result).slice(0, 3);
+        console.warn('[Choropleth] GEOID MISMATCH! Geo samples:', sampleGeo, 'Census samples:', sampleCensus);
+    }
+    
+    return result;
+}
+
+function normalizeGeoId(geoid) {
+    // TIGERweb GEOIDs may have prefixes like '1400000US' (tracts) or '1500000US' (block groups)
+    // or '8600000US' (ZCTAs). Strip these to get the raw FIPS code.
+    if (!geoid) return geoid;
+    const match = geoid.match(/(?:\d{7}US)?(\d+)/);
+    return match ? match[1] : geoid;
+}
+
+function createChoroplethLayer(geoData, censusData, variable, geoLevel) {
+    // Clear existing layer
+    clearCensusChoropleth();
+    
+    // For blocks, override varDef to show population
+    let varDef;
+    if (geoLevel === 'block') {
+        varDef = { name: 'Population (2020 Census)', format: 'number' };
+    } else {
+        varDef = choroplethVariables[variable];
+    }
+    
+    const colorScheme = document.getElementById('censusColorScheme').value;
+    const colors = colorSchemes[colorScheme];
+    const opacity = parseFloat(document.getElementById('censusLayerOpacity').value);
+    const interactionMode = document.getElementById('censusInteractionMode')?.value || 'hover';
+    
+    // Normalize all geo feature GEOIDs
+    geoData.features.forEach(f => {
+        const raw = f.properties.GEOID;
+        f.properties._normalizedGEOID = normalizeGeoId(raw);
+    });
+    
+    // Debug logging
+    const sampleGeoNorm = geoData.features.slice(0, 3).map(f => f.properties._normalizedGEOID);
+    const sampleCensus = Object.keys(censusData).slice(0, 3);
+    console.log('[Choropleth] Normalized GEOIDs:', sampleGeoNorm);
+    console.log('[Choropleth] Census data GEOIDs:', sampleCensus);
+    
+    let matchCount = 0;
+    geoData.features.forEach(f => {
+        if (censusData[f.properties._normalizedGEOID] !== undefined) matchCount++;
+    });
+    console.log('[Choropleth] Matched features:', matchCount, '/', geoData.features.length);
+    
+    // Clip to city boundary
+    let clippedGeoData = geoData;
+    if (state.currentCity && state.currentCity.geojson) {
+        try {
+            const cityGeo = state.currentCity.geojson;
+            const clippedFeatures = geoData.features.filter(feature => {
+                const centroid = getFeatureCentroid(feature);
+                if (!centroid) return false;
+                return isPointInPolygon(centroid[1], centroid[0], cityGeo);
+            });
+            console.log('[Choropleth] Clipped to boundary:', clippedFeatures.length, '/', geoData.features.length, 'features kept');
+            clippedGeoData = { type: 'FeatureCollection', features: clippedFeatures };
+        } catch (e) {
+            console.warn('[Choropleth] Clipping failed, using all features:', e);
+        }
+    }
+    
+    // Calculate min/max from matched data
+    const matchedValues = [];
+    clippedGeoData.features.forEach(f => {
+        const val = censusData[f.properties._normalizedGEOID];
+        if (val !== undefined && val !== null && !isNaN(val)) {
+            matchedValues.push(val);
+        }
+    });
+    
+    if (matchedValues.length === 0) {
+        showToast('No census data matched for these areas', 'warning');
+        return;
+    }
+    
+    const minVal = Math.min(...matchedValues);
+    const maxVal = Math.max(...matchedValues);
+    
+    console.log('[Choropleth] Value range:', minVal, '-', maxVal, '(', matchedValues.length, 'areas with data)');
+    
+    // Store for legend, table, and map-table linking
+    // Build a GEOID -> leaflet layer lookup for table click interaction
+    const layersByGeoid = {};
+    
+    state.choroplethData = {
+        min: minVal,
+        max: maxVal,
+        variable: variable,
+        varDef: varDef,
+        censusData: censusData,
+        colorScheme: colorScheme,
+        features: clippedGeoData.features,
+        geoLevel: geoLevel
+    };
+    
+    // Create the GeoJSON layer in the choroplethPane
+    // Use SVG renderer explicitly — preferCanvas creates a Canvas per pane, and the
+    // overlay pane's canvas (z-index 400) sits above choroplethPane (350) blocking
+    // all mouse events. SVG elements render individually and handle events correctly.
+    const choroplethRenderer = L.svg({ pane: 'choroplethPane' });
+    state.choroplethLayer = L.geoJSON(clippedGeoData, {
+        pane: 'choroplethPane',
+        renderer: choroplethRenderer,
+        style: (feature) => {
+            const geoid = feature.properties._normalizedGEOID;
+            const value = censusData[geoid];
+            const color = getColorForValue(value, minVal, maxVal, colors);
+            
+            return {
+                fillColor: color,
+                fillOpacity: value !== undefined ? opacity : 0.05,
+                color: '#555',
+                weight: 0.8,
+                opacity: 0.6
+            };
+        },
+        onEachFeature: (feature, layer) => {
+            const geoid = feature.properties._normalizedGEOID;
+            const value = censusData[geoid];
+            const name = feature.properties.NAME || feature.properties.BASENAME || 
+                        feature.properties.ZCTA5 || geoid;
+            
+            // Store the original computed style so we can restore it explicitly
+            // (resetStyle has quirks with custom SVG renderers)
+            const origColor = getColorForValue(value, minVal, maxVal, colors);
+            layer._origStyle = {
+                fillColor: origColor,
+                fillOpacity: value !== undefined ? opacity : 0.05,
+                color: '#555',
+                weight: 0.8,
+                opacity: 0.6
+            };
+            
+            // Store for table-to-map linking
+            layersByGeoid[geoid] = layer;
+            
+            // Build content string
+            const contentHtml = buildCensusTooltipContent(name, geoid, value, varDef);
+            
+            // Hover tooltip
+            if (interactionMode === 'hover' || interactionMode === 'both') {
+                layer.bindTooltip(contentHtml, {
+                    sticky: true,
+                    className: 'census-area-tooltip-wrapper'
+                });
+            }
+            
+            // Click popup
+            if (interactionMode === 'click' || interactionMode === 'both') {
+                layer.bindPopup(contentHtml, {
+                    className: 'census-area-popup',
+                    maxWidth: 280
+                });
+            }
+            
+            // Highlight on hover
+            layer.on('mouseover', function() {
+                this.setStyle({
+                    weight: 2.5,
+                    color: '#fff',
+                    opacity: 1
+                });
+                // Also highlight corresponding table row
+                highlightTableRow(geoid, true);
+            });
+            
+            layer.on('mouseout', function() {
+                // Don't reset if this is the currently-selected (clicked) area
+                if (geoid !== state.choroplethData._selectedGeoid) {
+                    this.setStyle(this._origStyle);
+                }
+                highlightTableRow(geoid, false);
+            });
+        }
+    });
+    
+    // Store the layer lookup for table click interaction
+    state.choroplethData.layersByGeoid = layersByGeoid;
+    
+    // Add to map
+    state.choroplethLayer.addTo(state.map);
+    
+    // Show legend
+    showChoroplethLegend(varDef, minVal, maxVal, colors);
+    
+    // Show data table with click-to-highlight support
+    showChoroplethDataTable(clippedGeoData.features, censusData, varDef, geoLevel);
+}
+
+function buildCensusTooltipContent(name, geoid, value, varDef) {
+    let html = `<div class="census-area-tooltip">`;
+    html += `<div class="area-name">${name}</div>`;
+    html += `<div class="area-geoid">GEOID: ${geoid}</div>`;
+    if (value !== undefined) {
+        html += `<div class="area-value">${varDef.name}: ${formatChoroplethValue(value, varDef.format)}</div>`;
+    } else {
+        html += `<div class="area-value">No data available</div>`;
+    }
+    html += `</div>`;
+    return html;
+}
+
+function highlightTableRow(geoid, highlight) {
+    const row = document.querySelector(`.census-data-table tr[data-geoid="${geoid}"]`);
+    if (row) {
+        if (highlight) {
+            row.classList.add('highlighted');
+            // Scroll into view if needed
+            const scroll = row.closest('.table-scroll');
+            if (scroll) {
+                const rowTop = row.offsetTop - scroll.offsetTop;
+                const scrollTop = scroll.scrollTop;
+                const scrollHeight = scroll.clientHeight;
+                if (rowTop < scrollTop || rowTop > scrollTop + scrollHeight - row.offsetHeight) {
+                    row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                }
+            }
+        } else {
+            row.classList.remove('highlighted');
+        }
+    }
+}
+
+function highlightMapArea(geoid, highlight) {
+    if (!state.choroplethData?.layersByGeoid) return;
+    const layer = state.choroplethData.layersByGeoid[geoid];
+    if (!layer) return;
+    
+    if (highlight) {
+        layer.setStyle({
+            weight: 3,
+            color: '#ffff00',
+            opacity: 1,
+            fillOpacity: 0.85
+        });
+        layer.openTooltip();
+    } else {
+        // Don't reset if this is the currently-selected (clicked) area
+        if (geoid !== state.choroplethData._selectedGeoid) {
+            // Restore original data-colored style explicitly
+            if (layer._origStyle) {
+                layer.setStyle(layer._origStyle);
+            }
+        }
+        layer.closeTooltip();
+    }
+}
+
+function panToMapArea(geoid) {
+    if (!state.choroplethData?.layersByGeoid) return;
+    const layer = state.choroplethData.layersByGeoid[geoid];
+    if (!layer) return;
+    state.map.fitBounds(layer.getBounds(), { maxZoom: state.map.getZoom(), padding: [50, 50] });
+}
+
+function getFeatureCentroid(feature) {
+    // Calculate rough centroid of a GeoJSON feature
+    try {
+        const coords = feature.geometry.coordinates;
+        let points = [];
+        
+        if (feature.geometry.type === 'Polygon') {
+            points = coords[0];
+        } else if (feature.geometry.type === 'MultiPolygon') {
+            points = coords[0][0];
+        } else {
+            return null;
+        }
+        
+        let sumLat = 0, sumLng = 0;
+        for (const p of points) {
+            sumLng += p[0];
+            sumLat += p[1];
+        }
+        return [sumLng / points.length, sumLat / points.length];
+    } catch (e) {
+        return null;
+    }
+}
+
+function showChoroplethDataTable(features, censusData, varDef, geoLevel) {
+    const container = document.getElementById('censusResults');
+    if (!container) return;
+    
+    // Build data for table
+    const rows = [];
+    features.forEach(f => {
+        const geoid = f.properties._normalizedGEOID;
+        const value = censusData[geoid];
+        const name = f.properties.NAME || f.properties.BASENAME || 
+                    f.properties.ZCTA5 || geoid;
+        rows.push({ name, geoid, value });
+    });
+    
+    // Sort by value descending
+    rows.sort((a, b) => {
+        if (a.value === undefined) return 1;
+        if (b.value === undefined) return -1;
+        return b.value - a.value;
+    });
+    
+    const withData = rows.filter(r => r.value !== undefined).length;
+    
+    // Determine data source attribution
+    const geoLabels = { 'tract': 'Census Tracts', 'block-group': 'Block Groups', 'block': 'Census Blocks', 'zcta': 'ZCTAs' };
+    const geoLabel = geoLabels[geoLevel] || geoLevel;
+    let dataSource, geoSource;
+    if (geoLevel === 'block') {
+        dataSource = 'U.S. Census Bureau, 2020 Decennial Census (PL 94-171)';
+        geoSource = 'U.S. Census Bureau TIGERweb, Census 2020';
+    } else {
+        dataSource = 'U.S. Census Bureau, American Community Survey 5-Year Estimates (2021)';
+        geoSource = 'U.S. Census Bureau TIGERweb, ACS 2021';
+    }
+    const cityName = state.currentCity?.name || '';
+    
+    let html = `<div class="census-data-table">`;
+    html += `<div class="table-header">📊 ${varDef.name} — ${withData} of ${rows.length} areas <span class="table-hint">Click row to locate on map</span></div>`;
+    html += `<div class="table-scroll">`;
+    html += `<table><thead><tr><th>#</th><th>Area</th><th>Value</th></tr></thead><tbody>`;
+    
+    rows.forEach((r, i) => {
+        const formatted = r.value !== undefined ? formatChoroplethValue(r.value, varDef.format) : '—';
+        const noDataCls = r.value === undefined ? ' no-data' : '';
+        html += `<tr class="census-table-row${noDataCls}" data-geoid="${r.geoid}"><td class="row-num">${i + 1}</td><td title="GEOID: ${r.geoid}">${r.name}</td><td>${formatted}</td></tr>`;
+    });
+    
+    html += `</tbody></table></div>`;
+    
+    // Attribution footer
+    html += `<div class="table-attribution">`;
+    html += `<div class="attribution-text">Data: ${dataSource}</div>`;
+    html += `<div class="attribution-text">Geography: ${geoSource} (${geoLabel})</div>`;
+    html += `</div>`;
+    
+    // Download button
+    html += `<button class="btn-download-census" title="Download CSV with attribution">⬇ Download CSV</button>`;
+    
+    html += `</div>`;
+    container.innerHTML = html;
+    
+    // Wire up download button
+    container.querySelector('.btn-download-census')?.addEventListener('click', () => {
+        downloadCensusCSV(rows, varDef, geoLevel, geoLabel, dataSource, geoSource, cityName);
+    });
+    
+    // Add click and hover listeners to table rows
+    container.querySelectorAll('.census-table-row').forEach(row => {
+        const geoid = row.dataset.geoid;
+        
+        // Hover: highlight on map
+        row.addEventListener('mouseenter', () => {
+            highlightMapArea(geoid, true);
+        });
+        row.addEventListener('mouseleave', () => {
+            highlightMapArea(geoid, false);
+        });
+        
+        // Click: pan to area and open popup
+        row.addEventListener('click', () => {
+            // Reset previously-selected area's map style
+            const prevGeoid = state.choroplethData?._selectedGeoid;
+            if (prevGeoid && prevGeoid !== geoid) {
+                const prevLayer = state.choroplethData?.layersByGeoid?.[prevGeoid];
+                if (prevLayer) {
+                    if (prevLayer._origStyle) {
+                        prevLayer.setStyle(prevLayer._origStyle);
+                    }
+                    prevLayer.closePopup();
+                }
+            }
+            
+            // Remove previous selection class
+            container.querySelectorAll('.census-table-row.selected').forEach(r => r.classList.remove('selected'));
+            row.classList.add('selected');
+            
+            // Track selected geoid
+            state.choroplethData._selectedGeoid = geoid;
+            
+            panToMapArea(geoid);
+            highlightMapArea(geoid, true);
+            
+            // Open popup on the layer
+            const layer = state.choroplethData?.layersByGeoid?.[geoid];
+            if (layer) {
+                const name = row.querySelector('td:nth-child(2)').textContent;
+                const value = state.choroplethData.censusData[geoid];
+                const popupHtml = buildCensusTooltipContent(name, geoid, value, state.choroplethData.varDef);
+                layer.bindPopup(popupHtml, { className: 'census-area-popup', maxWidth: 280 }).openPopup();
+            }
+        });
+    });
+}
+
+function downloadCensusCSV(rows, varDef, geoLevel, geoLabel, dataSource, geoSource, cityName) {
+    // Build CSV content with attribution header
+    const lines = [];
+    
+    // Attribution header rows (prefixed with # for comments)
+    const timestamp = new Date().toISOString().split('T')[0];
+    lines.push(`# Census Data Export — ${cityName || 'Unknown City'}`);
+    lines.push(`# Variable: ${varDef.name}`);
+    lines.push(`# Geography Level: ${geoLabel}`);
+    lines.push(`# Data Source: ${dataSource}`);
+    lines.push(`# Geographic Boundaries: ${geoSource}`);
+    lines.push(`# Generated: ${timestamp}`);
+    lines.push(`# Generated by: MapMaker (https://github.com)`);
+    lines.push('#');
+    
+    // CSV header
+    lines.push('Rank,Area,GEOID,Value');
+    
+    // Data rows
+    rows.forEach((r, i) => {
+        const formatted = r.value !== undefined ? r.value : '';
+        // Escape area name if it contains commas or quotes
+        let name = r.name;
+        if (name.includes(',') || name.includes('"')) {
+            name = '"' + name.replace(/"/g, '""') + '"';
+        }
+        lines.push(`${i + 1},${name},${r.geoid},${formatted}`);
+    });
+    
+    // Attribution footer rows
+    lines.push('#');
+    lines.push(`# Source: ${dataSource}`);
+    lines.push(`# Geography: ${geoSource}`);
+    
+    const csvContent = lines.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    
+    // Generate filename
+    const safeCity = (cityName || 'export').replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+    const safeVar = varDef.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+    const filename = `census_${safeCity}_${safeVar}_${geoLevel}_${timestamp}.csv`;
+    
+    // Trigger download
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+    
+    showToast(`Downloaded ${filename}`, 'success');
+}
+
+function getColorForValue(value, min, max, colors) {
+    if (value === undefined || value === null || isNaN(value)) {
+        return '#ccc';
+    }
+    
+    // Normalize value to 0-1 range
+    const range = max - min;
+    if (range === 0) return colors[Math.floor(colors.length / 2)];
+    
+    const normalized = (value - min) / range;
+    const index = Math.min(Math.floor(normalized * colors.length), colors.length - 1);
+    
+    return colors[index];
+}
+
+function formatChoroplethValue(value, format) {
+    if (value === null || value === undefined) return 'N/A';
+    
+    switch (format) {
+        case 'currency':
+            return '$' + Math.round(value).toLocaleString();
+        case 'percent':
+            return value.toFixed(1) + '%';
+        case 'number':
+            return Math.round(value).toLocaleString();
+        default:
+            return value.toString();
+    }
+}
+
+function showChoroplethLegend(varDef, min, max, colors) {
+    const legend = document.getElementById('choroplethLegend');
+    const title = document.getElementById('legendTitle');
+    const scale = document.getElementById('legendScale');
+    const minLabel = document.getElementById('legendMin');
+    const maxLabel = document.getElementById('legendMax');
+    
+    if (!legend) return;
+    
+    // Set title
+    title.textContent = varDef.name;
+    
+    // Create gradient for scale
+    const gradient = colors.join(', ');
+    scale.style.background = `linear-gradient(to right, ${gradient})`;
+    
+    // Set labels
+    minLabel.textContent = formatChoroplethValue(min, varDef.format);
+    maxLabel.textContent = formatChoroplethValue(max, varDef.format);
+    
+    legend.style.display = 'block';
+}
+
+function hideChoroplethLegend() {
+    const legend = document.getElementById('choroplethLegend');
+    if (legend) {
+        legend.style.display = 'none';
+    }
+}
+
+function updateChoroplethOpacity(opacity) {
+    if (state.choroplethLayer) {
+        state.choroplethLayer.eachLayer(layer => {
+            layer.setStyle({ fillOpacity: opacity });
+            // Keep _origStyle in sync
+            if (layer._origStyle) {
+                layer._origStyle.fillOpacity = opacity;
+            }
+        });
+    }
+}
+
+function updateChoroplethColors() {
+    if (!state.choroplethLayer || !state.choroplethData.censusData) return;
+    
+    const colorScheme = document.getElementById('censusColorScheme').value;
+    const colors = colorSchemes[colorScheme];
+    const { min, max, censusData, varDef } = state.choroplethData;
+    const opacity = parseFloat(document.getElementById('censusLayerOpacity').value);
+    
+    state.choroplethLayer.eachLayer(layer => {
+        const feature = layer.feature;
+        if (!feature) return;
+        const geoid = feature.properties._normalizedGEOID || feature.properties.GEOID;
+        const value = censusData[geoid];
+        const color = getColorForValue(value, min, max, colors);
+        
+        const newStyle = {
+            fillColor: color,
+            fillOpacity: value !== undefined ? opacity : 0.05,
+            color: '#555',
+            weight: 0.8,
+            opacity: 0.6
+        };
+        layer.setStyle(newStyle);
+        // Keep _origStyle in sync so hover/unhover restores the new colors
+        layer._origStyle = { ...newStyle };
+    });
+    
+    // Update legend
+    showChoroplethLegend(varDef, min, max, colors);
+}
+
+function clearCensusChoropleth() {
+    if (state.choroplethLayer) {
+        state.map.removeLayer(state.choroplethLayer);
+        state.choroplethLayer = null;
+    }
+    state.choroplethData = {};
+    hideChoroplethLegend();
+    // Clear data table
+    const container = document.getElementById('censusResults');
+    if (container) container.innerHTML = '';
 }

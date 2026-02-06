@@ -592,6 +592,441 @@
                 </div>
             </section>
             
+            <!-- Presets Section -->
+            <section class="panel collapsible collapsed" data-panel="presets">
+                <h2 class="panel-header">
+                    <span>⚡ Style Presets</span>
+                    <span class="collapse-icon">▼</span>
+                </h2>
+                <div class="panel-content">
+                    <div class="preset-grid">
+                        <button class="preset-btn" data-preset="default">Default</button>
+                        <button class="preset-btn" data-preset="minimal">Minimal</button>
+                        <button class="preset-btn" data-preset="bold">Bold</button>
+                        <button class="preset-btn" data-preset="neon">Neon</button>
+                        <button class="preset-btn" data-preset="vintage">Vintage</button>
+                        <button class="preset-btn" data-preset="blueprint">Blueprint</button>
+                        <button class="preset-btn" data-preset="satellite">Satellite</button>
+                        <button class="preset-btn" data-preset="dark">Dark Mode</button>
+                    </div>
+                    
+                    <hr class="divider">
+                    
+                    <div class="custom-preset-actions">
+                        <button id="savePresetBtn" class="btn btn-secondary btn-sm">💾 Save Current</button>
+                        <button id="loadPresetBtn" class="btn btn-secondary btn-sm">📂 Load Preset</button>
+                        <input type="file" id="presetFileInput" accept=".json" style="display: none;">
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Data Layers Section -->
+            <section class="panel collapsible collapsed" data-panel="datalayers">
+                <h2 class="panel-header">
+                    <span>📊 Data Layers <span id="activeLayerCount" class="badge">0</span></span>
+                    <span class="collapse-icon">▼</span>
+                </h2>
+                <div class="panel-content">
+                    
+                    <!-- OSM Features Sub-section -->
+                    <div class="subsection collapsible-subsection" data-subsection="osm">
+                        <h3 class="subsection-header clickable">
+                            <span>🗺️ OpenStreetMap Features</span>
+                            <span class="collapse-icon-small">▼</span>
+                        </h3>
+                        <div class="subsection-content">
+                            <p class="muted small">Add POI and infrastructure layers from OpenStreetMap. Layers load for the current city's bounding box.</p>
+                            
+                            <div id="layerLoadingIndicator" class="loading-indicator" style="display: none;">
+                                <span class="spinner"></span> Loading layer data...
+                            </div>
+                            
+                            <h4 class="category-title">🏛️ Civic & Government</h4>
+                            <div class="layer-grid">
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="schools" data-category="civic">
+                            <span class="layer-icon">🏫</span> Schools
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="hospitals" data-category="civic">
+                            <span class="layer-icon">🏥</span> Hospitals
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="police" data-category="civic">
+                            <span class="layer-icon">🚔</span> Police
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="fire_stations" data-category="civic">
+                            <span class="layer-icon">🚒</span> Fire Stations
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="libraries" data-category="civic">
+                            <span class="layer-icon">📚</span> Libraries
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="post_offices" data-category="civic">
+                            <span class="layer-icon">📮</span> Post Offices
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="government" data-category="civic">
+                            <span class="layer-icon">🏛️</span> Gov Buildings
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="places_of_worship" data-category="civic">
+                            <span class="layer-icon">⛪</span> Worship
+                        </label>
+                    </div>
+                    
+                    <hr class="divider">
+                    
+                    <h4 class="category-title">🚌 Transportation</h4>
+                    <div class="layer-grid">
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="bus_stops" data-category="transport">
+                            <span class="layer-icon">🚏</span> Bus Stops
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="train_stations" data-category="transport">
+                            <span class="layer-icon">🚉</span> Train Stations
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="subway" data-category="transport">
+                            <span class="layer-icon">🚇</span> Subway/Metro
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="parking" data-category="transport">
+                            <span class="layer-icon">🅿️</span> Parking
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="bike_parking" data-category="transport">
+                            <span class="layer-icon">🚲</span> Bike Parking
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="ev_charging" data-category="transport">
+                            <span class="layer-icon">⚡</span> EV Charging
+                        </label>
+                    </div>
+                    
+                    <hr class="divider">
+                    
+                            <h4 class="category-title">🌳 Parks & Recreation</h4>
+                    <div class="layer-grid">
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="parks" data-category="recreation">
+                            <span class="layer-icon">🌳</span> Parks
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="playgrounds" data-category="recreation">
+                            <span class="layer-icon">🛝</span> Playgrounds
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="sports" data-category="recreation">
+                            <span class="layer-icon">⚽</span> Sports Fields
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="swimming" data-category="recreation">
+                            <span class="layer-icon">🏊</span> Swimming
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="nature" data-category="recreation">
+                            <span class="layer-icon">🏞️</span> Nature Areas
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="beaches" data-category="recreation">
+                            <span class="layer-icon">🏖️</span> Beaches
+                        </label>
+                    </div>
+                    
+                    <hr class="divider">
+                    
+                            <h4 class="category-title">🛒 Commerce & Services</h4>
+                    <div class="layer-grid">
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="supermarkets" data-category="commerce">
+                            <span class="layer-icon">🛒</span> Supermarkets
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="pharmacies" data-category="commerce">
+                            <span class="layer-icon">💊</span> Pharmacies
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="banks" data-category="commerce">
+                            <span class="layer-icon">🏦</span> Banks
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="atms" data-category="commerce">
+                            <span class="layer-icon">💳</span> ATMs
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="gas_stations" data-category="commerce">
+                            <span class="layer-icon">⛽</span> Gas Stations
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="restaurants" data-category="commerce">
+                            <span class="layer-icon">🍽️</span> Restaurants
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="cafes" data-category="commerce">
+                            <span class="layer-icon">☕</span> Cafes
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="hotels" data-category="commerce">
+                            <span class="layer-icon">🏨</span> Hotels
+                        </label>
+                    </div>
+                    
+                    <hr class="divider">
+                    
+                            <h4 class="category-title">🎭 Culture & Tourism</h4>
+                    <div class="layer-grid">
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="museums" data-category="culture">
+                            <span class="layer-icon">🏛️</span> Museums
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="theaters" data-category="culture">
+                            <span class="layer-icon">🎭</span> Theaters
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="cinemas" data-category="culture">
+                            <span class="layer-icon">🎬</span> Cinemas
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="monuments" data-category="culture">
+                            <span class="layer-icon">🗽</span> Monuments
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="viewpoints" data-category="culture">
+                            <span class="layer-icon">👀</span> Viewpoints
+                        </label>
+                        <label class="layer-toggle">
+                            <input type="checkbox" data-layer="tourist_info" data-category="culture">
+                            <span class="layer-icon">ℹ️</span> Tourist Info
+                        </label>
+                    </div>
+                    
+                    <hr class="divider">
+                    
+                    <h4 class="category-title">⚙️ Layer Display</h4>
+                    
+                    <label class="form-label">
+                        Marker Size
+                        <input type="range" id="layerMarkerSize" min="8" max="32" value="16" class="slider">
+                        <span class="range-value" id="layerMarkerSizeValue">16px</span>
+                    </label>
+                    
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="showLayerLabels">
+                        Show POI labels
+                    </label>
+                    
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="clusterMarkers" checked>
+                        Cluster nearby markers
+                    </label>
+                    
+                    <label class="form-label checkbox-label">
+                        <input type="checkbox" id="clipToBoundary" checked>
+                        Clip to city boundary
+                    </label>
+                    
+                    <div class="panel-actions" style="margin-top: 12px;">
+                        <button id="clearAllLayers" class="btn btn-secondary btn-sm">Clear All Layers</button>
+                        <button id="refreshLayers" class="btn btn-secondary btn-sm">🔄 Refresh</button>
+                    </div>
+                    
+                    <div id="layerStats" class="layer-stats" style="display: none;">
+                        <span id="layerStatsText"></span>
+                    </div>
+                        </div>
+                    </div>
+                    <!-- End of OSM Features Sub-section -->
+                    
+                    <hr class="divider-thick">
+                    
+                    <!-- Census Data Sub-section -->
+                    <div class="subsection collapsible-subsection" data-subsection="census">
+                        <h3 class="subsection-header clickable">
+                            <span>📈 US Census Data</span>
+                            <span class="collapse-icon-small">▼</span>
+                        </h3>
+                        <div class="subsection-content">
+                            <p class="muted small">Select Census variables to include in exports. Data is fetched for each US city during batch export.</p>
+                    
+                            <div id="censusLoadingIndicator" class="loading-indicator" style="display: none;">
+                                <span class="spinner"></span> Fetching Census data...
+                            </div>
+                    
+                            <h4 class="category-title">👥 Demographics</h4>
+                            <div class="census-var-grid">
+                                <label class="census-toggle">
+                                    <input type="checkbox" data-census="total_population" checked>
+                                    <span>Total Population</span>
+                                </label>
+                                <label class="census-toggle">
+                                    <input type="checkbox" data-census="median_age">
+                                    <span>Median Age</span>
+                                </label>
+                            </div>
+                    
+                            <h4 class="category-title">🏠 Housing</h4>
+                            <div class="census-var-grid">
+                                <label class="census-toggle">
+                                    <input type="checkbox" data-census="total_housing_units">
+                                    <span>Housing Units</span>
+                                </label>
+                                <label class="census-toggle">
+                                    <input type="checkbox" data-census="median_home_value" checked>
+                                    <span>Median Home Value</span>
+                                </label>
+                                <label class="census-toggle">
+                                    <input type="checkbox" data-census="median_rent">
+                                    <span>Median Rent</span>
+                                </label>
+                                <label class="census-toggle">
+                                    <input type="checkbox" data-census="vacancy_rate">
+                                    <span>Vacancy Rate</span>
+                                </label>
+                            </div>
+                    
+                            <h4 class="category-title">💰 Income & Poverty</h4>
+                            <div class="census-var-grid">
+                                <label class="census-toggle">
+                                    <input type="checkbox" data-census="median_household_income" checked>
+                                    <span>Median Income</span>
+                                </label>
+                                <label class="census-toggle">
+                                    <input type="checkbox" data-census="per_capita_income">
+                                    <span>Per Capita Income</span>
+                                </label>
+                                <label class="census-toggle">
+                                    <input type="checkbox" data-census="poverty_rate" checked>
+                                    <span>Poverty Rate</span>
+                                </label>
+                            </div>
+                    
+                            <h4 class="category-title">💼 Employment</h4>
+                            <div class="census-var-grid">
+                                <label class="census-toggle">
+                                    <input type="checkbox" data-census="unemployment_rate" checked>
+                                    <span>Unemployment Rate</span>
+                                </label>
+                                <label class="census-toggle">
+                                    <input type="checkbox" data-census="labor_force">
+                                    <span>Labor Force</span>
+                                </label>
+                            </div>
+                    
+                            <h4 class="category-title">🎓 Education</h4>
+                            <div class="census-var-grid">
+                                <label class="census-toggle">
+                                    <input type="checkbox" data-census="bachelors_degree">
+                                    <span>Bachelor's Degree+</span>
+                                </label>
+                            </div>
+                    
+                            <h4 class="category-title">🚗 Transportation</h4>
+                            <div class="census-var-grid">
+                                <label class="census-toggle">
+                                    <input type="checkbox" data-census="commute_time">
+                                    <span>Commute Time</span>
+                                </label>
+                                <label class="census-toggle">
+                                    <input type="checkbox" data-census="public_transit">
+                                    <span>Public Transit</span>
+                                </label>
+                            </div>
+                    
+                            <hr class="divider">
+                            
+                            <h4 class="category-title">🗺️ Choropleth Map</h4>
+                            
+                            <label class="form-label">
+                                Geography Level
+                                <select id="censusGeoLevel">
+                                    <option value="none">None (disabled)</option>
+                                    <option value="tract">Census Tracts</option>
+                                    <option value="block-group">Block Groups</option>
+                                    <option value="block">Census Blocks (population only)</option>
+                                    <option value="zcta">Zip Codes (ZCTA)</option>
+                                </select>
+                            </label>
+                            
+                            <label class="form-label">
+                                Variable to Map
+                                <select id="censusMapVariable">
+                                    <option value="median_household_income">Median Income</option>
+                                    <option value="poverty_rate">Poverty Rate</option>
+                                    <option value="total_population">Population</option>
+                                    <option value="median_home_value">Home Value</option>
+                                    <option value="median_rent">Median Rent</option>
+                                    <option value="unemployment_rate">Unemployment</option>
+                                    <option value="bachelors_degree">Education (BA+)</option>
+                                </select>
+                            </label>
+                            
+                            <label class="form-label">
+                                Color Scheme
+                                <select id="censusColorScheme">
+                                    <option value="blues">Blues</option>
+                                    <option value="greens">Greens</option>
+                                    <option value="reds">Reds</option>
+                                    <option value="purples">Purples</option>
+                                    <option value="oranges">Oranges</option>
+                                    <option value="viridis">Viridis</option>
+                                    <option value="rdylgn">Red-Yellow-Green</option>
+                                </select>
+                            </label>
+                            
+                            <label class="form-label">
+                                Opacity
+                                <input type="range" id="censusLayerOpacity" min="0.1" max="1" step="0.1" value="0.6" class="slider">
+                                <span class="range-value" id="censusLayerOpacityValue">60%</span>
+                            </label>
+                            
+                            <label class="form-label">
+                                Interaction
+                                <select id="censusInteractionMode">
+                                    <option value="hover">Hover tooltip</option>
+                                    <option value="click">Click popup</option>
+                                    <option value="both">Both</option>
+                                </select>
+                            </label>
+
+                            <div class="panel-actions" style="margin-top: 8px;">
+                                <button id="loadCensusChoropleth" class="btn btn-primary btn-sm">🗺️ Load Map Layer</button>
+                                <button id="clearCensusChoropleth" class="btn btn-secondary btn-sm">Clear</button>
+                            </div>
+                            
+                            <div id="censusLoadingChoropleth" class="loading-indicator" style="display: none;">
+                                <span class="spinner"></span> Loading census areas...
+                            </div>
+                    
+                            <hr class="divider">
+                    
+                            <label class="form-label checkbox-label">
+                                <input type="checkbox" id="showCensusOverlay">
+                                Show stats overlay on map
+                            </label>
+                    
+                            <label class="form-label checkbox-label">
+                                <input type="checkbox" id="includeCensusInExport" checked>
+                                Include in export CSV
+                            </label>
+                    
+                            <div class="panel-actions" style="margin-top: 12px;">
+                                <button id="previewCensusBtn" class="btn btn-secondary btn-sm">👁️ Preview Current City</button>
+                                <button id="clearCensusBtn" class="btn btn-secondary btn-sm">Clear Cache</button>
+                            </div>
+                    
+                            <div id="censusResults" class="census-results"></div>
+                        </div>
+                    </div>
+                    <!-- End of Census Data Sub-section -->
+                    
+                </div>
+            </section>
+            
             <!-- Export Section -->
             <section class="panel collapsible" data-panel="export">
                 <h2 class="panel-header">
@@ -645,8 +1080,8 @@
                     </label>
                     
                     <label class="form-label checkbox-label">
-                        <input type="checkbox" id="hideCityIndicatorOnExport" checked>
-                        Hide city indicator in export
+                        <input type="checkbox" id="hideCenterMarkerOnExport" checked>
+                        Hide center marker in export
                     </label>
                     
                     <hr class="divider">
@@ -718,249 +1153,9 @@
                 </div>
             </section>
             
-            <!-- Presets Section -->
-            <section class="panel collapsible collapsed" data-panel="presets">
-                <h2 class="panel-header">
-                    <span>⚡ Style Presets</span>
-                    <span class="collapse-icon">▼</span>
-                </h2>
-                <div class="panel-content">
-                    <div class="preset-grid">
-                        <button class="preset-btn" data-preset="default">Default</button>
-                        <button class="preset-btn" data-preset="minimal">Minimal</button>
-                        <button class="preset-btn" data-preset="bold">Bold</button>
-                        <button class="preset-btn" data-preset="neon">Neon</button>
-                        <button class="preset-btn" data-preset="vintage">Vintage</button>
-                        <button class="preset-btn" data-preset="blueprint">Blueprint</button>
-                        <button class="preset-btn" data-preset="satellite">Satellite</button>
-                        <button class="preset-btn" data-preset="dark">Dark Mode</button>
-                    </div>
-                    
-                    <hr class="divider">
-                    
-                    <div class="custom-preset-actions">
-                        <button id="savePresetBtn" class="btn btn-secondary btn-sm">💾 Save Current</button>
-                        <button id="loadPresetBtn" class="btn btn-secondary btn-sm">📂 Load Preset</button>
-                        <input type="file" id="presetFileInput" accept=".json" style="display: none;">
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Data Layers Section -->
-            <section class="panel collapsible collapsed" data-panel="datalayers">
-                <h2 class="panel-header">
-                    <span>📊 Data Layers <span id="activeLayerCount" class="badge">0</span></span>
-                    <span class="collapse-icon">▼</span>
-                </h2>
-                <div class="panel-content">
-                    <p class="muted small">Add POI and infrastructure layers from OpenStreetMap. Layers load for the current city's bounding box.</p>
-                    
-                    <div id="layerLoadingIndicator" class="loading-indicator" style="display: none;">
-                        <span class="spinner"></span> Loading layer data...
-                    </div>
-                    
-                    <hr class="divider">
-                    
-                    <h3 class="subsection-title">🏛️ Civic & Government</h3>
-                    <div class="layer-grid">
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="schools" data-category="civic">
-                            <span class="layer-icon">🏫</span> Schools
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="hospitals" data-category="civic">
-                            <span class="layer-icon">🏥</span> Hospitals
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="police" data-category="civic">
-                            <span class="layer-icon">🚔</span> Police
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="fire_stations" data-category="civic">
-                            <span class="layer-icon">🚒</span> Fire Stations
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="libraries" data-category="civic">
-                            <span class="layer-icon">📚</span> Libraries
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="post_offices" data-category="civic">
-                            <span class="layer-icon">📮</span> Post Offices
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="government" data-category="civic">
-                            <span class="layer-icon">🏛️</span> Gov Buildings
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="places_of_worship" data-category="civic">
-                            <span class="layer-icon">⛪</span> Worship
-                        </label>
-                    </div>
-                    
-                    <hr class="divider">
-                    
-                    <h3 class="subsection-title">🚌 Transportation</h3>
-                    <div class="layer-grid">
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="bus_stops" data-category="transport">
-                            <span class="layer-icon">🚏</span> Bus Stops
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="train_stations" data-category="transport">
-                            <span class="layer-icon">🚉</span> Train Stations
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="subway" data-category="transport">
-                            <span class="layer-icon">🚇</span> Subway/Metro
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="parking" data-category="transport">
-                            <span class="layer-icon">🅿️</span> Parking
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="bike_parking" data-category="transport">
-                            <span class="layer-icon">🚲</span> Bike Parking
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="ev_charging" data-category="transport">
-                            <span class="layer-icon">⚡</span> EV Charging
-                        </label>
-                    </div>
-                    
-                    <hr class="divider">
-                    
-                    <h3 class="subsection-title">🌳 Parks & Recreation</h3>
-                    <div class="layer-grid">
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="parks" data-category="recreation">
-                            <span class="layer-icon">🌳</span> Parks
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="playgrounds" data-category="recreation">
-                            <span class="layer-icon">🛝</span> Playgrounds
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="sports" data-category="recreation">
-                            <span class="layer-icon">⚽</span> Sports Fields
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="swimming" data-category="recreation">
-                            <span class="layer-icon">🏊</span> Swimming
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="nature" data-category="recreation">
-                            <span class="layer-icon">🏞️</span> Nature Areas
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="beaches" data-category="recreation">
-                            <span class="layer-icon">🏖️</span> Beaches
-                        </label>
-                    </div>
-                    
-                    <hr class="divider">
-                    
-                    <h3 class="subsection-title">🛒 Commerce & Services</h3>
-                    <div class="layer-grid">
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="supermarkets" data-category="commerce">
-                            <span class="layer-icon">🛒</span> Supermarkets
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="pharmacies" data-category="commerce">
-                            <span class="layer-icon">💊</span> Pharmacies
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="banks" data-category="commerce">
-                            <span class="layer-icon">🏦</span> Banks
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="atms" data-category="commerce">
-                            <span class="layer-icon">💳</span> ATMs
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="gas_stations" data-category="commerce">
-                            <span class="layer-icon">⛽</span> Gas Stations
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="restaurants" data-category="commerce">
-                            <span class="layer-icon">🍽️</span> Restaurants
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="cafes" data-category="commerce">
-                            <span class="layer-icon">☕</span> Cafes
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="hotels" data-category="commerce">
-                            <span class="layer-icon">🏨</span> Hotels
-                        </label>
-                    </div>
-                    
-                    <hr class="divider">
-                    
-                    <h3 class="subsection-title">🎭 Culture & Tourism</h3>
-                    <div class="layer-grid">
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="museums" data-category="culture">
-                            <span class="layer-icon">🏛️</span> Museums
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="theaters" data-category="culture">
-                            <span class="layer-icon">🎭</span> Theaters
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="cinemas" data-category="culture">
-                            <span class="layer-icon">🎬</span> Cinemas
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="monuments" data-category="culture">
-                            <span class="layer-icon">🗽</span> Monuments
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="viewpoints" data-category="culture">
-                            <span class="layer-icon">👀</span> Viewpoints
-                        </label>
-                        <label class="layer-toggle">
-                            <input type="checkbox" data-layer="tourist_info" data-category="culture">
-                            <span class="layer-icon">ℹ️</span> Tourist Info
-                        </label>
-                    </div>
-                    
-                    <hr class="divider">
-                    
-                    <h3 class="subsection-title">⚙️ Layer Display</h3>
-                    
-                    <label class="form-label">
-                        Marker Size
-                        <input type="range" id="layerMarkerSize" min="8" max="32" value="16" class="slider">
-                        <span class="range-value" id="layerMarkerSizeValue">16px</span>
-                    </label>
-                    
-                    <label class="form-label checkbox-label">
-                        <input type="checkbox" id="showLayerLabels">
-                        Show POI labels
-                    </label>
-                    
-                    <label class="form-label checkbox-label">
-                        <input type="checkbox" id="clusterMarkers" checked>
-                        Cluster nearby markers
-                    </label>
-                    
-                    <hr class="divider">
-                    
-                    <div class="panel-actions">
-                        <button id="clearAllLayers" class="btn btn-secondary btn-sm">Clear All Layers</button>
-                        <button id="refreshLayers" class="btn btn-secondary btn-sm">🔄 Refresh</button>
-                    </div>
-                    
-                    <div id="layerStats" class="layer-stats" style="display: none;">
-                        <span id="layerStatsText"></span>
-                    </div>
-                </div>
-            </section>
-            
             <footer class="sidebar-footer">
                 <p>Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors</p>
-                <p class="version">MapMaker v1.2</p>
+                <p class="version">MapMaker v1.3</p>
             </footer>
         </aside>
         
@@ -980,6 +1175,16 @@
                 
                 <!-- Info Overlay (date, coordinates) -->
                 <div id="infoOverlay" class="info-overlay" style="display: none;"></div>
+                
+                <!-- Census Choropleth Legend -->
+                <div id="choroplethLegend" class="choropleth-legend" style="display: none;">
+                    <div class="legend-title" id="legendTitle">Census Data</div>
+                    <div class="legend-scale" id="legendScale"></div>
+                    <div class="legend-labels">
+                        <span id="legendMin">0</span>
+                        <span id="legendMax">100</span>
+                    </div>
+                </div>
             </div>
             
             <!-- Map Controls Overlay -->

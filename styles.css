@@ -126,13 +126,48 @@ html, body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 1.5rem;
+    padding: 0.85rem 1.25rem;
     cursor: pointer;
     user-select: none;
     font-size: 0.9rem;
     font-weight: 600;
     color: var(--text-primary);
     transition: background-color var(--transition-speed);
+    border-left: 4px solid transparent;
+}
+
+/* Different colored accents for each panel type */
+.panel[data-panel="citysearch"] .panel-header {
+    border-left-color: #3b82f6; /* blue */
+}
+
+.panel[data-panel="map"] .panel-header {
+    border-left-color: #8b5cf6; /* purple */
+}
+
+.panel[data-panel="boundary"] .panel-header {
+    border-left-color: #f59e0b; /* amber */
+}
+
+.panel[data-panel="markers"] .panel-header {
+    border-left-color: #ef4444; /* red */
+}
+
+.panel[data-panel="title"] .panel-header {
+    border-left-color: #ec4899; /* pink */
+}
+
+.panel[data-panel="annotations"] .panel-header {
+    border-left-color: #14b8a6; /* teal */
+}
+
+.panel[data-panel="datalayers"] .panel-header {
+    border-left-color: #10b981; /* green/primary */
+}
+
+.panel[data-panel="export"] .panel-header {
+    border-left-color: #f97316; /* orange */
+}
 }
 
 .panel-header:hover {
@@ -150,11 +185,11 @@ html, body {
 }
 
 .panel-content {
-    padding: 0 1.5rem 1.5rem;
+    padding: 0 1.25rem 1.25rem;
     transition: max-height 0.3s ease, opacity 0.2s ease, padding 0.2s ease;
-    max-height: 2000px;
+    max-height: 3000px;
     opacity: 1;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .panel.collapsed .panel-content {
@@ -172,8 +207,8 @@ html, body {
 /* Form Elements */
 .form-label {
     display: block;
-    margin-bottom: 1rem;
-    font-size: 0.875rem;
+    margin-bottom: 0.7rem;
+    font-size: 0.8rem;
     color: var(--text-secondary);
 }
 
@@ -182,13 +217,13 @@ html, body {
 .form-label input[type="number"],
 .form-label textarea {
     width: 100%;
-    padding: 0.5rem 0.75rem;
-    margin-top: 0.35rem;
+    padding: 0.4rem 0.6rem;
+    margin-top: 0.25rem;
     background-color: var(--bg-input);
     border: 1px solid var(--border-color);
     border-radius: 6px;
     color: var(--text-primary);
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
 }
 
@@ -264,7 +299,8 @@ html, body {
 .divider {
     border: none;
     border-top: 1px solid var(--border-color);
-    margin: 1rem 0;
+    margin: 0.75rem 0;
+    opacity: 0.5;
 }
 
 /* Buttons */
@@ -831,6 +867,80 @@ html, body {
     gap: 0.5rem;
 }
 
+/* Collapsible Subsections */
+.collapsible-subsection {
+    margin-bottom: 1rem;
+}
+
+.subsection-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0.85rem;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05));
+    border-left: 3px solid var(--primary-color);
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.subsection-header.clickable {
+    cursor: pointer;
+    transition: all var(--transition-speed);
+}
+
+.subsection-header.clickable:hover {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(16, 185, 129, 0.15));
+    border-left-color: #fff;
+}
+
+.collapse-icon-small {
+    font-size: 0.7rem;
+    transition: transform var(--transition-speed);
+}
+
+.collapsible-subsection.collapsed .collapse-icon-small {
+    transform: rotate(-90deg);
+}
+
+.collapsible-subsection.collapsed .subsection-content {
+    display: none;
+}
+
+.subsection-content {
+    padding: 0.75rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    margin-top: 0.5rem;
+}
+
+/* Category Titles (inside subsections) */
+.category-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin: 0.75rem 0 0.4rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.category-title:first-of-type {
+    margin-top: 0.25rem;
+}
+
+/* Thick divider for major sections */
+.divider-thick {
+    border: none;
+    border-top: 3px solid var(--primary-color);
+    margin: 1rem 0;
+    opacity: 0.6;
+}
+
 /* Boundary List */
 .boundary-list {
     list-style: none;
@@ -1115,18 +1225,18 @@ html, body {
 .layer-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.4rem;
+    gap: 0.3rem;
 }
 
 .layer-toggle {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.4rem 0.5rem;
+    gap: 0.3rem;
+    padding: 0.3rem 0.4rem;
     background-color: var(--bg-input);
-    border-radius: 6px;
+    border-radius: 4px;
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: 0.7rem;
     transition: all var(--transition-speed);
     user-select: none;
 }
@@ -1145,7 +1255,7 @@ html, body {
 }
 
 .layer-icon {
-    font-size: 1rem;
+    font-size: 0.85rem;
 }
 
 .loading-indicator {
@@ -1312,6 +1422,368 @@ html, body {
 
 .marker-cluster-large {
     background-color: rgba(239, 68, 68, 0.9);
+}
+
+/* Census Data Styles */
+.census-results {
+    margin-top: 0.5rem;
+}
+
+.census-var-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.census-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.4rem;
+    background-color: var(--bg-input);
+    border-radius: 4px;
+    font-size: 0.65rem;
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.census-toggle:hover {
+    background-color: var(--border-color);
+}
+
+.census-toggle input[type="checkbox"] {
+    width: 12px;
+    height: 12px;
+    margin: 0;
+}
+
+.census-toggle span {
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.census-toggle input:checked + span {
+    color: var(--primary-color);
+}
+
+.census-category {
+    margin-bottom: 1rem;
+}
+
+.census-category-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.census-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.census-item {
+    display: grid;
+    grid-template-columns: 1.5rem 1fr auto;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.5rem;
+    background-color: var(--bg-input);
+    border-radius: 4px;
+    font-size: 0.75rem;
+}
+
+.census-icon {
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.census-label {
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.census-value {
+    font-weight: 600;
+    color: var(--primary-color);
+    text-align: right;
+}
+
+/* Census Overlay on Map */
+.census-overlay {
+    position: absolute;
+    bottom: 60px;
+    left: 10px;
+    background: rgba(31, 41, 55, 0.95);
+    border-radius: 8px;
+    padding: 12px 16px;
+    z-index: 1000;
+    min-width: 200px;
+    max-width: 280px;
+    border: 1px solid var(--border-color);
+    font-size: 0.8rem;
+}
+
+.census-overlay-title {
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+.census-overlay-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.census-overlay-item:last-child {
+    border-bottom: none;
+}
+
+.census-overlay-label {
+    color: var(--text-secondary);
+}
+
+.census-overlay-value {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Choropleth Legend */
+.choropleth-legend {
+    position: absolute;
+    bottom: 40px;
+    right: 20px;
+    background: rgba(31, 41, 55, 0.95);
+    border-radius: 8px;
+    padding: 12px 16px;
+    min-width: 160px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    border: 1px solid var(--border-color);
+}
+
+.legend-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.legend-scale {
+    height: 16px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.legend-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+/* Choropleth area hover tooltip */
+.census-area-tooltip-wrapper {
+    background: rgba(31, 41, 55, 0.95) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 6px !important;
+    padding: 0 !important;
+    font-size: 0.85rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.census-area-tooltip-wrapper .leaflet-tooltip-content {
+    margin: 0;
+}
+
+.census-area-tooltip {
+    padding: 8px 12px;
+}
+
+.census-area-tooltip .area-name {
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 2px;
+}
+
+.census-area-tooltip .area-geoid {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.census-area-tooltip .area-value {
+    color: var(--text-primary);
+}
+
+/* Census Data Table */
+.census-data-table {
+    margin-top: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.census-data-table .table-header {
+    background: var(--bg-input);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.census-data-table .table-scroll {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.census-data-table .table-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.census-data-table .table-scroll::-webkit-scrollbar-track {
+    background: var(--bg-dark);
+}
+
+.census-data-table .table-scroll::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+.census-data-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.7rem;
+}
+
+.census-data-table th {
+    position: sticky;
+    top: 0;
+    background: var(--bg-panel);
+    padding: 0.35rem 0.5rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.census-data-table th:last-child {
+    text-align: right;
+}
+
+.census-data-table td {
+    padding: 0.3rem 0.5rem;
+    border-bottom: 1px solid rgba(55, 65, 81, 0.3);
+    color: var(--text-primary);
+}
+
+.census-data-table td:last-child {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.census-data-table tr:hover {
+    background: rgba(16, 185, 129, 0.1);
+    cursor: pointer;
+}
+
+.census-data-table tr.highlighted {
+    background: rgba(255, 255, 0, 0.15) !important;
+}
+
+.census-data-table tr.selected {
+    background: rgba(16, 185, 129, 0.25) !important;
+    outline: 1px solid var(--primary-color);
+}
+
+.census-data-table tr.no-data td {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.census-data-table .row-num {
+    color: var(--text-muted);
+    font-size: 0.6rem;
+    width: 24px;
+    text-align: center;
+}
+
+.census-data-table .table-hint {
+    float: right;
+    font-weight: 400;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Attribution footer */
+.census-data-table .table-attribution {
+    padding: 0.4rem 0.6rem;
+    border-top: 1px solid var(--border-color);
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.census-data-table .attribution-text {
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+/* Download button */
+.btn-download-census {
+    display: block;
+    width: 100%;
+    padding: 0.45rem 0.75rem;
+    margin: 0;
+    border: none;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-input);
+    color: var(--primary-color);
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    border-radius: 0 0 6px 6px;
+}
+
+.btn-download-census:hover {
+    background: rgba(16, 185, 129, 0.15);
+}
+
+/* Census area popup (click mode) */
+.census-area-popup .leaflet-popup-content-wrapper {
+    background: rgba(31, 41, 55, 0.95) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    color: var(--text-primary);
+}
+
+.census-area-popup .leaflet-popup-tip {
+    background: rgba(31, 41, 55, 0.95) !important;
+}
+
+.census-area-popup .leaflet-popup-close-button {
+    color: var(--text-muted) !important;
+}
+
+.census-area-popup .leaflet-popup-close-button:hover {
+    color: var(--text-primary) !important;
 }
 
 /* Responsive */
