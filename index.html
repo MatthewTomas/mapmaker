@@ -10,6 +10,9 @@
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
           crossorigin=""/>
     
+    <!-- MapLibre GL JS CSS (for globe view) -->
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.17.0/dist/maplibre-gl.css" />
+    
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -93,6 +96,14 @@
                             <option value="esriWorldTopo">ESRI World Topo</option>
                             <option value="esriWorldStreet">ESRI World Street</option>
                             <option value="openTopo">OpenTopoMap</option>
+                        </select>
+                    </label>
+                    
+                    <label class="form-label">
+                        Projection
+                        <select id="mapProjection">
+                            <option value="flat">Flat (2D Mercator)</option>
+                            <option value="globe">🌐 3D Globe</option>
                         </select>
                     </label>
                     
@@ -1163,6 +1174,7 @@
         <main class="map-container">
             <div id="mapWrapper">
                 <div id="map"></div>
+                <div id="globeMap" style="display: none;"></div>
                 
                 <!-- Title Block Overlay -->
                 <div id="titleBlockOverlay" class="title-block-overlay" style="display: none;">
@@ -1189,6 +1201,9 @@
             
             <!-- Map Controls Overlay -->
             <div class="map-overlay top-right">
+                <button id="toggleGlobeBtn" class="map-btn" title="Toggle 3D Globe view">
+                    🌐 Globe
+                </button>
                 <button id="zoomToFitBtn" class="map-btn" title="Zoom to fit selected city">
                     🎯 Fit
                 </button>
@@ -1232,6 +1247,9 @@
     
     <!-- FileSaver for saving zip files -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    
+    <!-- MapLibre GL JS (for 3D globe view) -->
+    <script src="https://unpkg.com/maplibre-gl@5.17.0/dist/maplibre-gl.js"></script>
     
     <!-- Application JS -->
     <script src="app.js"></script>

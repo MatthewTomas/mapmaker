@@ -32,7 +32,12 @@ const state = {
     pageSize: 'auto',
     fixedDimensions: null,
     activeLayers: new Set(),  // Track which data layers are enabled
-    layerData: {}  // Cache for fetched layer data
+    layerData: {},  // Cache for fetched layer data
+    globeMap: null,  // MapLibre GL globe instance
+    globeMarker: null,  // Flag marker on globe
+    globeLabel: null,  // City label marker on globe
+    isGlobeView: false,  // Whether globe view is active
+    globeCityId: null  // Track which city the globe is currently showing
 };
 
 // ============================================
@@ -586,6 +591,11 @@ function setTileLayer(style) {
         attribution: provider.attribution,
         maxZoom: 19
     }).addTo(state.map);
+    
+    // Update globe view tiles if active
+    if (state.globeMap) {
+        updateGlobeTiles(style);
+    }
 }
 
 // ============================================
@@ -688,6 +698,7 @@ function setupEventListeners() {
     // Map style
     document.getElementById('mapStyle').addEventListener('change', (e) => {
         setTileLayer(e.target.value);
+        // Globe tiles update is handled inside setTileLayer
     });
     
     // Map controls visibility
@@ -801,6 +812,17 @@ function setupEventListeners() {
     // View controls
     document.getElementById('zoomToFitBtn').addEventListener('click', zoomToFit);
     document.getElementById('resetViewBtn').addEventListener('click', resetView);
+    
+    // Globe toggle button
+    document.getElementById('toggleGlobeBtn').addEventListener('click', toggleGlobeView);
+    
+    // Projection dropdown
+    document.getElementById('mapProjection').addEventListener('change', (e) => {
+        const isGlobe = e.target.value === 'globe';
+        if (isGlobe !== state.isGlobeView) {
+            toggleGlobeView();
+        }
+    });
     
     // Export
     document.getElementById('exportCurrentBtn').addEventListener('click', exportCurrentView);
@@ -1435,6 +1457,11 @@ function showCity(cityId) {
     // Refresh data layers for new city
     if (state.activeLayers && state.activeLayers.size > 0) {
         refreshDataLayersForNewCity();
+    }
+    
+    // Update globe view if active
+    if (state.isGlobeView && state.globeMap) {
+        updateGlobeView();
     }
 }
 
@@ -2258,6 +2285,292 @@ function zoomToFit() {
 function resetView() {
     const animate = document.getElementById('animateTransitions').checked;
     state.map.setView([39.8283, -98.5795], 4, { animate });
+}
+
+// ============================================
+// 3D Globe View (MapLibre GL)
+// ============================================
+
+function getGlobeStyleObject(tileUrl) {
+    // Convert Leaflet tile URL to MapLibre format
+    // Replace {s} with a specific subdomain, remove {r} retina token
+    const resolvedUrl = tileUrl.replace('{s}', 'a').replace('{r}', '');
+    
+    return {
+        version: 8,
+        projection: { type: 'globe' },
+        sources: {
+            'raster-tiles': {
+                type: 'raster',
+                tiles: [resolvedUrl],
+                tileSize: 256
+            }
+        },
+        layers: [
+            {
+                id: 'raster-layer',
+                type: 'raster',
+                source: 'raster-tiles'
+            }
+        ],
+        sky: {
+            'atmosphere-blend': [
+                'interpolate', ['linear'], ['zoom'],
+                0, 1,
+                5, 1,
+                7, 0
+            ]
+        },
+        light: {
+            anchor: 'map',
+            position: [1.5, 90, 80]
+        }
+    };
+}
+
+function toggleGlobeView() {
+    state.isGlobeView = !state.isGlobeView;
+    
+    const mapDiv = document.getElementById('map');
+    const globeDiv = document.getElementById('globeMap');
+    const toggleBtn = document.getElementById('toggleGlobeBtn');
+    const projSelect = document.getElementById('mapProjection');
+    
+    if (state.isGlobeView) {
+        // Switch to globe
+        mapDiv.style.display = 'none';
+        globeDiv.style.display = 'block';
+        toggleBtn.classList.add('active');
+        projSelect.value = 'globe';
+        initGlobeView();
+    } else {
+        // Switch back to flat map
+        globeDiv.style.display = 'none';
+        mapDiv.style.display = 'block';
+        toggleBtn.classList.remove('active');
+        projSelect.value = 'flat';
+        destroyGlobeView();
+        // Invalidate Leaflet size after re-showing
+        setTimeout(() => state.map.invalidateSize(), 100);
+    }
+}
+
+function initGlobeView() {
+    const currentStyle = document.getElementById('mapStyle').value;
+    const provider = tileProviders[currentStyle] || tileProviders.osm;
+    
+    const styleObj = getGlobeStyleObject(provider.url);
+    
+    state.globeMap = new maplibregl.Map({
+        container: 'globeMap',
+        style: styleObj,
+        center: [-98.5795, 39.8283], // Center of US [lng, lat]
+        zoom: 1.5,
+        attributionControl: true,
+        antialias: true
+    });
+    
+    state.globeMap.on('load', () => {
+        // If a city is active, fly to it
+        if (state.activeCityId) {
+            updateGlobeView();
+        }
+    });
+}
+
+function updateGlobeView() {
+    if (!state.globeMap || !state.activeCityId) return;
+    
+    const city = state.cities.find(c => c.id === state.activeCityId);
+    if (!city) return;
+    
+    const isNewCity = (state.globeCityId !== city.id);
+    
+    // Clear existing globe overlays
+    clearGlobeOverlays();
+    
+    // Only reposition camera when switching to a NEW city
+    // User has full control over zoom/pan otherwise
+    if (isNewCity) {
+        state.globeCityId = city.id;
+        
+        // Position camera: city near top of globe, curvature ~1/3 up from bottom
+        // Offset center ~25° south of city lat
+        const centerLat = city.lat - 25;
+        const centerLng = city.lon;
+        
+        state.globeMap.flyTo({
+            center: [centerLng, centerLat],
+            zoom: 3.2,
+            pitch: 0,
+            bearing: 0,
+            duration: 2000,
+            essential: true
+        });
+    }
+    
+    // Add flag marker at city location
+    const flagEl = document.createElement('div');
+    flagEl.className = 'globe-flag-marker';
+    flagEl.innerHTML = '🚩';
+    flagEl.title = city.name;
+    
+    state.globeMarker = new maplibregl.Marker({
+        element: flagEl,
+        anchor: 'bottom'
+    })
+        .setLngLat([city.lon, city.lat])
+        .addTo(state.globeMap);
+    
+    // Add city label using the existing label settings (if enabled)
+    addGlobeCityLabel(city);
+    
+    // Add city boundary as GeoJSON
+    addGlobeBoundary(city);
+}
+
+function clearGlobeOverlays() {
+    if (state.globeMarker) {
+        state.globeMarker.remove();
+        state.globeMarker = null;
+    }
+    if (state.globeLabel) {
+        state.globeLabel.remove();
+        state.globeLabel = null;
+    }
+    if (state.globeMap) {
+        if (state.globeMap.getLayer('city-boundary-line')) {
+            state.globeMap.removeLayer('city-boundary-line');
+        }
+        if (state.globeMap.getLayer('city-boundary-fill')) {
+            state.globeMap.removeLayer('city-boundary-fill');
+        }
+        if (state.globeMap.getSource('city-boundary')) {
+            state.globeMap.removeSource('city-boundary');
+        }
+    }
+}
+
+function addGlobeCityLabel(city) {
+    // Respect the existing "Show city name label" checkbox
+    if (!document.getElementById('showCityLabel').checked) return;
+    
+    // Read all the existing label settings
+    const fontSize = document.getElementById('labelFontSize').value;
+    const fontWeight = document.getElementById('labelFontWeight').value;
+    const color = document.getElementById('labelColor').value;
+    const shadow = document.getElementById('labelShadow').checked;
+    const hasBg = document.getElementById('labelBackground').checked;
+    const bgColor = document.getElementById('labelBgColor').value;
+    const bgOpacity = parseInt(document.getElementById('labelBgOpacity').value) / 100;
+    
+    const bgStyle = hasBg 
+        ? `background: ${hexToRgba(bgColor, bgOpacity)}; padding: 0.4rem 0.75rem;` 
+        : 'padding: 0.25rem 0.5rem;';
+    const shadowStyle = shadow 
+        ? 'text-shadow: 2px 2px 4px rgba(0,0,0,0.8), -1px -1px 2px rgba(0,0,0,0.5);' 
+        : '';
+    
+    const labelEl = document.createElement('div');
+    labelEl.className = 'globe-city-label-marker';
+    labelEl.innerHTML = `<div style="
+        font-size: ${fontSize}px;
+        font-weight: ${fontWeight};
+        color: ${color};
+        ${shadowStyle}
+        ${bgStyle}
+        border-radius: 4px;
+        white-space: nowrap;
+        pointer-events: none;
+    ">${city.name}</div>`;
+    
+    state.globeLabel = new maplibregl.Marker({
+        element: labelEl,
+        anchor: 'bottom',
+        offset: [0, -40]
+    })
+        .setLngLat([city.lon, city.lat])
+        .addTo(state.globeMap);
+}
+
+function addGlobeBoundary(city) {
+    if (!city.geojson || !state.globeMap) return;
+    
+    const geojsonData = {
+        type: 'Feature',
+        geometry: city.geojson,
+        properties: { name: city.name }
+    };
+    
+    state.globeMap.addSource('city-boundary', {
+        type: 'geojson',
+        data: geojsonData
+    });
+    
+    // Fill layer with transparency
+    state.globeMap.addLayer({
+        id: 'city-boundary-fill',
+        type: 'fill',
+        source: 'city-boundary',
+        paint: {
+            'fill-color': '#e74c3c',
+            'fill-opacity': 0.15
+        }
+    });
+    
+    // Outline layer
+    state.globeMap.addLayer({
+        id: 'city-boundary-line',
+        type: 'line',
+        source: 'city-boundary',
+        paint: {
+            'line-color': '#e74c3c',
+            'line-width': 2,
+            'line-opacity': 0.8
+        }
+    });
+}
+
+function updateGlobeTiles(style) {
+    if (!state.globeMap) return;
+    
+    const provider = tileProviders[style];
+    if (!provider) return;
+    
+    const styleObj = getGlobeStyleObject(provider.url);
+    
+    // Preserve any existing sources/layers (boundary) by re-setting style
+    state.globeMap.setStyle(styleObj);
+    
+    // Re-add overlays after style change (without repositioning camera)
+    state.globeMap.once('style.load', () => {
+        if (state.activeCityId) {
+            const city = state.cities.find(c => c.id === state.activeCityId);
+            if (city) {
+                // Re-add marker, label, and boundary without moving camera
+                const flagEl = document.createElement('div');
+                flagEl.className = 'globe-flag-marker';
+                flagEl.innerHTML = '🚩';
+                flagEl.title = city.name;
+                state.globeMarker = new maplibregl.Marker({
+                    element: flagEl,
+                    anchor: 'bottom'
+                }).setLngLat([city.lon, city.lat]).addTo(state.globeMap);
+                
+                addGlobeCityLabel(city);
+                addGlobeBoundary(city);
+            }
+        }
+    });
+}
+
+function destroyGlobeView() {
+    clearGlobeOverlays();
+    state.globeCityId = null;
+    if (state.globeMap) {
+        state.globeMap.remove();
+        state.globeMap = null;
+    }
 }
 
 // ============================================
